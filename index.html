@@ -296,7 +296,7 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 .ledger tr.dim td{opacity:.42}
 .ledger .add{color:#4A7C0B}
 .ledger .cin{border-color:#B7CC2E}
-.badge{background:#B7CC2E!important;color:#1B3A7A!important}
+.badge{background:#E8772E!important;color:#fff!important}
 .scard.f{border-top-color:#1F6FD1}
 .scard.c{border-top-color:#B7CC2E;background:#F6F9E6}
 .roi .blk.c{background:#F6F9E6;border-color:#DCE7B0}
@@ -423,7 +423,6 @@ label.f{font-size:17px;font-weight:700}
     <div class="row-btn" style="margin:0 0 12px">
       <button class="btn btn-line btn-s" id="shareBtn">บันทึกรูป / ส่ง LINE</button>
       <button class="btn btn-g btn-s" id="cFromBefore">ล้างช่องวางแผน</button>
-      <button class="btn btn-g btn-s" id="cFromFull">เติมช่องวางแผนเท่าใช้สิทธิ์เต็ม</button>
     </div>
     <div class="hint" id="shareMsg" role="status" style="margin:-4px 2px 10px"></div>
     <div class="ledger-wrap" id="ledgerWrap"><table class="ledger" id="ledger"></table></div>
@@ -460,7 +459,7 @@ label.f{font-size:17px;font-weight:700}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "1.6.1";
+var APP_VERSION = "1.7.0";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "8 ต.ค. 2569";
 
@@ -493,6 +492,9 @@ function tapClear(inp){
 var BR = [[150000,0],[300000,5],[500000,10],[750000,15],[1000000,20],[2000000,25],[5000000,30],[Infinity,35]];
 function progTax(n){ var t = 0, prev = 0; for (var i = 0; i < BR.length; i++){ if (n > prev) t += (Math.min(n, BR[i][0]) - prev) * BR[i][1] / 100; prev = BR[i][0]; } return t; }
 function marginal(n){ if (n <= 0) return 0; for (var i = 0; i < BR.length; i++) if (n <= BR[i][0]) return BR[i][1]; return 35; }
+function invProg(t){ var prev = 0, acc = 0; for (var i = 0; i < BR.length; i++){ var span = BR[i][0] - prev, tx = span * BR[i][1] / 100; if (acc + tx >= t) return BR[i][1] ? prev + (t - acc) * 100 / BR[i][1] : prev; acc += tx; prev = BR[i][0]; } return prev; }
+/* จุดคุ้มสุด: เงินได้สุทธิที่ต่ำกว่านี้ ลดหย่อนเพิ่มไม่ช่วยลดภาษี */
+function floorNet(r){ return r.taxMin > 0 ? Math.max(150000, invProg(r.taxMin)) : 150000; }
 function topIdx(n){ for (var i = 0; i < BR.length; i++) if (n <= BR[i][0]) return i; return BR.length - 1; }
 
 function M(k, label, showIf){ return { t:"money", k:k, label:label, showIf:showIf }; }
@@ -585,7 +587,7 @@ var INCOME_ITEMS = [
       "ส่วนใหญ่หักค่าใช้จ่ายเหมา <b>60%</b> หรือหักตามจริงพร้อมหลักฐาน",
       "<b>สายออนไลน์</b>: ขายของออนไลน์ ไลฟ์ขายสินค้าของตัวเอง ซื้อมาขายไป อินฟลูเอนเซอร์ที่มีแบรนด์ของตัวเอง รายได้ส่วนแบ่งโฆษณาจากแพลตฟอร์มมักจัดเป็น 40(8) ให้ดูลักษณะสัญญาประกอบ",
       "<b>ของขวัญจากการไลฟ์สด</b> เช่น TikTok Gift / Diamond ที่แลกเป็นเงิน ส่วนใหญ่จัดเป็น 40(8) ยังไม่มีแนววินิจฉัยเฉพาะ ให้ยืนยันกับสรรพากร 1161",
-      "<b>นักแสดง นักร้อง นักกีฬา</b>: 300,000 บาทแรกหัก 60% ส่วนที่เกินหัก 40%",
+      "<b>นักแสดง นักร้อง นักดนตรี นักกีฬาอาชีพ</b>: 300,000 บาทแรกหัก 60% ส่วนที่เกินหัก 40% รวมหักได้ไม่เกิน 600,000 บาท",
       "ตัวแทนประกันที่ตั้งสำนักงาน ลงทุนอุปกรณ์ จ้างพนักงานเอง อาจจัดเป็น 40(8)"],
       "ตัวอย่าง: ร้านอาหาร ร้านกาแฟ แม่ค้าออนไลน์ ชาวสวน รถรับจ้างขนส่ง ดารา นักร้อง"),
     fields:[ M("biz","เงินได้ทั้งปี (บาท)"),
@@ -595,13 +597,13 @@ var INCOME_ITEMS = [
   { id:"i9", code:"40(8)", title:"ของขวัญจากไลฟ์สดออนไลน์",
     def:D(["รายได้จาก<b>ของขวัญเสมือน</b>ที่ผู้ชมส่งให้ระหว่างไลฟ์ แล้วแลกเป็นเงิน เช่น TikTok Gift / Diamond, Facebook Stars, YouTube Super Chat",
       "นับเป็นเงินได้เมื่อแลกเป็นเงินหรือได้รับโอนเข้าบัญชี ยอดที่ได้หลังแพลตฟอร์มหักส่วนแบ่งแล้ว",
-      "ส่วนใหญ่จัดเป็น <b>40(8)</b> เพราะเป็นรายได้จากการทำคอนเทนต์ด้วยตัวเอง ไม่มีผู้จ้าง (ถ้าแบรนด์จ้างไลฟ์ เป็น 40(2) ให้กรอกในกล่อง 40(2))",
-      "ยังไม่มีแนววินิจฉัยของกรมสรรพากรเรื่องนี้โดยตรง เงินได้ 40(8) ที่ไม่อยู่ในรายการหักเหมา อาจหักได้เฉพาะตามจริง ควรยืนยันกับสรรพากร 1161",
+      "กรมสรรพากรยังไม่มีเอกสารที่ระบุประเภทเงินได้ของของขวัญไลฟ์สดโดยตรง แอปจัดไว้ใน 40(8) ควรยืนยันกับสรรพากร 1161",
+      "<b>หักค่าใช้จ่าย</b>: รายได้ประเภทนี้ไม่อยู่ในรายการหักเหมา 60% ตาม พ.ร.ฎ. ฉบับที่ 11 มาตรา 8 จึงหักได้<b>เฉพาะตามความจำเป็นและสมควร (ตามจริง) ต้องมีหลักฐาน</b> ตามมาตรา 8 ทวิ ถ้าไม่มีหลักฐาน หักไม่ได้",
+      "ถ้าแบรนด์จ้างไลฟ์ เป็น 40(2) ให้กรอกในกล่อง 40(2)",
       "แพลตฟอร์มต่างประเทศมักไม่หักภาษี ณ ที่จ่าย ต้องยื่นเอง"],
-      "ตัวอย่าง: ไลฟ์ร้องเพลงใน TikTok ได้ Diamond แลกเป็นเงินทั้งปี 240,000 บาท"),
+      "ตัวอย่าง: ไลฟ์ใน TikTok ได้ Diamond แลกเป็นเงินทั้งปี 240,000 บาท มีใบเสร็จค่าอุปกรณ์ไลฟ์ 30,000 บาท"),
     fields:[ M("gift","เงินที่แลกได้ทั้งปี (บาท)"),
-      S("giftType","วิธีหักค่าใช้จ่าย",[["flat","หักเหมา 60%"],["actual","หักตามจริง"]]),
-      M("giftActual","ค่าใช้จ่ายจริง (บาท)", function(v){ return v.giftType === "actual"; }),
+      M("giftActual","ค่าใช้จ่ายจริงที่มีหลักฐาน (บาท)"),
       M("whtGift","ภาษีที่ถูกหัก ณ ที่จ่ายทั้งปี") ] }
 ];
 
@@ -742,7 +744,7 @@ var DED_ITEMS = [
     fields:[ M("party","ยอดบริจาค (บาท)") ] }
 ];
 var DED_MONEY = []; DED_ITEMS.forEach(function(it){ it.fields.forEach(function(f){ if (f.t === "money") DED_MONEY.push({ k:f.k, id:it.id, title:it.title, g:it.g, plan:!!it.plan }); }); });
-var EXP_KEYS = { giftType:1, giftActual:1, rentType:1, rentActual:1, profType:1, profActual:1, conType:1, conActual:1, bizType:1, bizActual:1 };
+var EXP_KEYS = { giftActual:1, rentType:1, rentActual:1, profType:1, profActual:1, conType:1, conActual:1, bizType:1, bizActual:1 };
 var FIELD_HINT = { life:"สูงสุด 100,000 (รวมกับประกันสุขภาพ)", health:"สูงสุด 25,000 (รวมกับประกันชีวิตไม่เกิน 100,000)",
   spouseLife:"สูงสุด 10,000", parentHealth:"สูงสุด 15,000", annuity:"15% ของเงินได้ ไม่เกิน 200,000", pvd:"15% ของค่าจ้าง",
   rmf:"30% ของเงินได้ ไม่เกิน 500,000", nsf:"สูงสุด 30,000", teacher:"15% ของค่าจ้าง", tesg:"รวมกับ ESGX ไม่เกิน 30% ของเงินได้ และ 300,000",
@@ -751,7 +753,7 @@ var FIELD_HINT = { life:"สูงสุด 100,000 (รวมกับประ
 var WHT_OF = { whtGift:["gift"], whtSalary:["salary","commission"], whtComm:["commission"], whtRoyalty:["royalty"], whtRent:["rent"], whtProf:["prof"], whtCon:["con"], whtBiz:["biz"] };
 
 /* ===== State ===== */
-var DEFAULT_V = { empTaxMode:"none", benTaxMode:"none", giftType:"flat", interestMode:"final", dividendMode:"final", corpRate:"20", rentType:"building", profType:"other", conType:"flat", bizType:"general" };
+var DEFAULT_V = { empTaxMode:"none", benTaxMode:"none", giftType:"actual", interestMode:"final", dividendMode:"final", corpRate:"20", rentType:"building", profType:"other", conType:"flat", bizType:"general" };
 var DEFAULT_D = { socialMode:"full" };
 function freshState(){ return { v:Object.assign({}, DEFAULT_V), d:Object.assign({}, DEFAULT_D), sel:{}, cust:{ name:"", age:"", ret:"60", dis:false, old:false }, custom:{}, roiRate:"3", brView:"B" }; }
 var st = freshState();
@@ -787,10 +789,10 @@ function compute(v, d, gU){
   var prof = num(v.prof);
   var exp6 = v.profType === "actual" ? Math.min(num(v.profActual), prof) : prof * (v.profType === "medical" ? .6 : .3);
   var con = num(v.con), exp7 = v.conType === "actual" ? Math.min(num(v.conActual), con) : con * .6;
-  var gift = num(v.gift), exp9 = v.giftType === "actual" ? Math.min(num(v.giftActual), gift) : gift * .6;
+  var gift = num(v.gift), exp9 = Math.min(num(v.giftActual), gift);
   var biz = num(v.biz), exp8;
   if (v.bizType === "actual") exp8 = Math.min(num(v.bizActual), biz);
-  else if (v.bizType === "performer") exp8 = biz <= 300000 ? biz * .6 : 180000 + (biz - 300000) * .4;
+  else if (v.bizType === "performer") exp8 = Math.min(600000, biz <= 300000 ? biz * .6 : 180000 + (biz - 300000) * .4);
   else exp8 = biz * .6;
   var inc = { i1:salary, i1b:ben, i9:gift, i2:comm, i3:roy, i4a:s4i, i4b:s4d, i5:rent, i6:prof, i7:con, i8:biz };
   var exps = { i9:exp9, i12:exp12, i3:exp3, i5:exp5, i6:exp6, i7:exp7, i8:exp8 };
@@ -846,7 +848,7 @@ function compute(v, d, gU){
   var taxAfterCredit = tax - credits;
   var wht = num(v.whtSalary) + num(v.whtComm) + num(v.whtRoyalty) + num(v.whtRent) + num(v.whtProf) + num(v.whtCon) + num(v.whtBiz) + num(v.whtGift);
   var retMax = Math.min(500000, capAnn + capRmf + (nsfOk ? 30000 : 0) + (num(d.pvd) > 0 ? capPvd : 0) + (num(d.teacher) > 0 ? capTeach : 0));
-  return { preDon:pre, beforeDon:beforeDon, inc:inc, exps:exps, gU:gU, gross:gross, expense:expense, afterExp:afterExp, exempt:exempt, U:U, totalDed:totalDed, net:net,
+  return { nonSal:nonSal, minExempt:nonSal >= 120000 && nonSal * .005 <= 5000, preDon:pre, beforeDon:beforeDon, inc:inc, exps:exps, gU:gU, gross:gross, expense:expense, afterExp:afterExp, exempt:exempt, U:U, totalDed:totalDed, net:net,
     rate:marginal(net), prog:prog, taxMin:taxMin, usedMin:taxMin > prog, tax:tax, credits:credits, taxAfterCredit:taxAfterCredit,
     wht:wht, payable:taxAfterCredit - wht, annToLife:annToLife, nsfOk:nsfOk,
     caps:{ annuity:capAnn, rmf:capRmf, pvd:capPvd, teacher:capTeach, esg:capEsg },
@@ -1287,7 +1289,7 @@ function renderTab2(){
   row("รวมรายได้", null, function(r){ return r.gross; }, { cls:"t" });
   spacer();
   head("ค่าใช้จ่าย", "h exp");
-  var EXP_ROWS = [["i12", "40(1)+40(2) เหมา 50% ไม่เกิน 100,000", ["i1","i1b","i2"]], ["i9", "40(8) ของขวัญไลฟ์สด", ["i9"]], ["i3", "40(3) ค่าลิขสิทธิ์", ["i3"]], ["i5", "40(5) ค่าเช่า", ["i5"]], ["i6", "40(6) วิชาชีพอิสระ", ["i6"]], ["i7", "40(7) รับเหมา", ["i7"]], ["i8", "40(8) ธุรกิจ", ["i8"]]];
+  var EXP_ROWS = [["i12", "40(1)+40(2) เหมา 50% ไม่เกิน 100,000", ["i1","i1b","i2"]], ["i9", "40(8) ของขวัญไลฟ์สด (ตามจริง)", ["i9"]], ["i3", "40(3) ค่าลิขสิทธิ์", ["i3"]], ["i5", "40(5) ค่าเช่า", ["i5"]], ["i6", "40(6) วิชาชีพอิสระ", ["i6"]], ["i7", "40(7) รับเหมา", ["i7"]], ["i8", "40(8) ธุรกิจ", ["i8"]]];
   EXP_ROWS.forEach(function(e){ if (e[2].some(function(id){ return st.sel[id]; })) row(e[1], null, function(r){ return r.exps[e[0]]; }, { minus:true }); });
   if (S0.rB.exempt > 0) row("ยกเว้นผู้สูงอายุ 65+ / คนพิการ", null, function(r){ return r.exempt; }, { minus:true });
   row("เงินได้หลังหักค่าใช้จ่าย", null, function(r){ return r.afterExp - r.exempt; }, { cls:"t" });
@@ -1317,7 +1319,14 @@ function renderTab2(){
   row("รวมค่าลดหย่อนทั้งหมด", null, function(r){ return r.totalDed; });
   row("เงินได้สุทธิ", null, function(r){ return r.net; }, { cls:"t" });
   row("อัตราภาษีขั้นสูงสุด", null, function(r){ return r.rate; }, { pct:true });
-  row("ภาษีที่คำนวณได้", null, function(r){ return r.tax; }, { minNote:true });
+  var M2 = S0.rB.nonSal > 0 || S0.rF.nonSal > 0;
+  if (M2){
+    head("ภาษี 2 วิธี เสียตามวิธีที่ได้ยอดสูงกว่า", "sh");
+    row("วิธีที่ 1 เงินได้สุทธิ × อัตราขั้นบันได", null, function(r){ return r.prog; });
+    row("วิธีที่ 2 เงินได้ที่ไม่ใช่ 40(1) × 0.5%", null, function(r){ return r.nonSal * .005; }, { m2:true });
+    row("ใช้วิธี", null, function(r){ return r.usedMin ? 2 : 1; }, { method:true });
+  }
+  row("ภาษีที่คำนวณได้", null, function(r){ return r.tax; });
   if (S0.rB.credits > 0) row("หักเครดิตภาษี ดอกเบี้ย/เงินปันผล", null, function(r){ return r.credits; }, { minus:true });
   var GU = S0.rB.empPaid > 0;
   row(GU ? "ภาษีทั้งปี (รวม)" : "ภาษีทั้งปี", null, function(r){ return r.taxAfterCredit; }, { cls:GU ? "t" : "big", signed:true });
@@ -1336,6 +1345,7 @@ function renderTab2(){
   updateTab2(true);
 }
 function cellText(n, o){
+  if (o.method) return "วิธีที่ " + n;
   if (o.pct) return n + "%";
   if (o.pct1) return n > 0 ? n.toFixed(1) + "%" : "–";
   if (o.signed && n < 0) return "(" + fmt(-n) + ")";
@@ -1363,7 +1373,8 @@ function updateTab2(initial){
         if (initial || document.activeElement !== c.inp) c.inp.value = withCommas(st.custom[k] || "");
         var add = num(st.custom[k]);
         if (add <= 0){
-          var h = hintFor(k, s);
+          var h = s.rB.net <= floorNet(s.rB) + 0.5 ? 0 : hintFor(k, s);
+          if (s.rB.net <= floorNet(s.rB) + 0.5){ c.cap.textContent = s.rB.usedMin ? "เสียภาษีวิธีที่ 2 ซื้อเพิ่มไม่ช่วยลดภาษี" : "ไม่ต้องเสียภาษีแล้ว"; c.cap.className = "cap hint2"; return; }
           if (h > 0){ c.cap.textContent = "แนะนำ +" + fmt(h); c.cap.className = "cap hint2"; }
           else if (mx > 0){ c.cap.textContent = "ใส่ได้อีก " + fmt(mx); c.cap.className = "cap hint2"; }
           if (k === "annuity"){ var lr2 = lifeRoomFor(k, s); if (lr2 > 0 && mx > h) c.cap2.textContent = "ถ้าไม่ซื้อประกันชีวิตเพิ่ม ใส่ได้อีก " + fmt(lr2); }
@@ -1391,7 +1402,7 @@ function updateTab2(initial){
       var val = c.get(col[1], s, col[0]);
       td.textContent = cellText(val, c.opts);
       td.classList.toggle("neg", !!c.opts.signed && val < 0);
-      if (c.opts.minNote && col[1].usedMin) td.appendChild(el("span", { class:"cap" }, "ภาษีขั้นต่ำ 0.5%"));
+      if (c.opts.m2){ var R = col[1]; var why = R.nonSal < 120000 ? "เงินได้ไม่ถึง 120,000 ไม่ต้องคิด" : (R.minExempt ? "ไม่เกิน 5,000 ได้รับยกเว้น" : ""); if (why) td.appendChild(el("span", { class:"cap hint2" }, why)); }
     });
   });
   renderSummary(s); renderRoi(s); renderBrackets(s);
@@ -1424,11 +1435,14 @@ function renderSummary(s){
   if (GU) box.appendChild(el("div", { class:"brtip", style:"margin-bottom:12px" },
     el("div", null, "นายจ้างออกภาษีให้ ภาษีที่ประหยัดได้จากการวางแผนบางส่วนจะลดภาระของนายจ้าง"),
     el("div", null, "ช่อง \"ลูกค้าประหยัดภาษี\" คือเงินที่ลูกค้าได้ประโยชน์จริง")));
-  if (s.rF.net < 150000 && exF > 0)
-    box.appendChild(el("div", { class:"warn" },
-      el("div", null, "⚠ ใช้สิทธิ์เต็มแล้ว เงินได้สุทธิเหลือ " + fmt(s.rF.net) + " บาท"),
-      el("div", null, "ต่ำกว่า 150,000 บาท ซึ่งไม่ต้องเสียภาษีอยู่แล้ว"),
-      el("div", null, "ลดหย่อนเกินจุดคุ้มประมาณ " + fmt(150000 - s.rF.net) + " บาท")));
+  var fl = floorNet(s.rF);
+  if (s.rF.net < fl - 0.5 && exF > 0){
+    var w = el("div", { class:"warn" }, el("div", null, "⚠ ใช้สิทธิ์เต็มแล้ว เงินได้สุทธิเหลือ " + fmt(s.rF.net) + " บาท"));
+    if (s.rF.taxMin > 0 && fl > 150000) w.appendChild(el("div", null, "ภาษีวิธีที่ 2 (0.5%) = " + fmt(s.rF.taxMin) + " บาท สูงกว่าวิธีที่ 1 แล้ว ลดหย่อนต่อไม่ช่วย"));
+    else w.appendChild(el("div", null, "ต่ำกว่า 150,000 บาท ซึ่งไม่ต้องเสียภาษีอยู่แล้ว"));
+    w.appendChild(el("div", null, "ลดหย่อนเกินจุดคุ้มประมาณ " + fmt(fl - s.rF.net) + " บาท ลดยอดในคอลัมน์ตามใจลูกค้าได้"));
+    box.appendChild(w);
+  }
 }
 function fv(pmt, r, n){ if (n <= 0) return 0; return r > 0 ? pmt * (Math.pow(1 + r, n) - 1) / r : pmt * n; }
 function renderRoi(s){
@@ -1483,23 +1497,37 @@ function renderBrackets(s){
     prev = top;
   }
   tb.appendChild(el("tr", { class:"tot" }, el("td", null, "รวม"), el("td", null, fmt(net)), el("td"), el("td", null, fmt(r.prog)), el("td")));
-  var tip = $("brTip"), lower = ti > 0 ? BR[ti - 1][0] : 0, inTop = Math.max(0, net - lower);
-  tip.innerHTML = "";
-  if (BR[ti][1] === 0){ tip.appendChild(el("div", null, "เงินได้สุทธิไม่เกิน 150,000 บาท")); tip.appendChild(el("div", null, "ไม่ต้องเสียภาษี (ยกเว้นกรณีภาษีขั้นต่ำ 0.5%)")); }
-  else {
-    tip.appendChild(el("div", null, "อยู่ขั้นภาษี " + BR[ti][1] + "%"));
-    tip.appendChild(el("div", null, "เงินได้ในขั้นนี้ " + fmt(inTop) + " บาท"));
-    tip.appendChild(el("div", null, "ลดหย่อนเพิ่มอีก " + fmt(inTop) + " บาท จะลงมาอยู่ขั้น " + BR[ti - 1][1] + "%"));
-    tip.appendChild(el("div", null, "ประหยัดภาษีได้ " + fmt(inTop * BR[ti][1] / 100) + " บาท"));
-  }
+  var tip = $("brTip"); tip.innerHTML = "";
+  function line(t){ tip.appendChild(el("div", null, t)); }
+  var dX = st.brView === "F" ? s.dF : st.brView === "C" ? s.dC : s.dB;
+  if (r.usedMin){ line("เสียภาษีวิธีที่ 2 (0.5% ของเงินได้ที่ไม่ใช่ 40(1)) = " + fmt(r.taxMin) + " บาท"); line("ลดหย่อนเพิ่มไม่ช่วยลดภาษี เพราะวิธีที่ 2 ไม่หักค่าลดหย่อน"); return; }
+  if (BR[ti][1] === 0){ line("เงินได้สุทธิไม่เกิน 150,000 บาท"); line("ไม่ต้องเสียภาษี"); return; }
+  line("อยู่ขั้นภาษี " + BR[ti][1] + "% เงินได้ในขั้นนี้ " + fmt(net - BR[ti - 1][0]) + " บาท");
+  /* สิทธิ์ที่ยังซื้อเพิ่มได้จริง */
+  var fX = fullD(dX, r), rX = computeAll(s.v, fX);
+  var room = Math.max(0, r.net - rX.net);
+  var fl = floorNet(r), need = Math.max(0, net - Math.max(BR[ti - 1][0], fl));
+  if (room < 1){ line("ใช้สิทธิ์ลดหย่อนที่ซื้อเพิ่มได้ครบแล้ว ลดภาษีด้วยการลดหย่อนเพิ่มไม่ได้อีก"); return; }
+  var use = Math.min(room, need), saveT = r.taxAfterCredit - computeAll(s.v, allocate(dX, fX, use)).taxAfterCredit;
+  var picks = pickList(dX, fX, use);
+  if (room + 0.5 >= need && fl <= BR[ti - 1][0]) line("ซื้อเพิ่มอีก " + fmt(use) + " บาท จะลงมาอยู่ขั้น " + BR[ti - 1][1] + "%");
+  else if (fl > BR[ti - 1][0] && room + 0.5 >= need) line("ซื้อเพิ่มได้อีก " + fmt(use) + " บาท เกินกว่านี้ไม่ช่วยลดภาษี (ภาษีวิธีที่ 2 / ยกเว้น 150,000)");
+  else line("ซื้อเพิ่มได้อีกสูงสุด " + fmt(use) + " บาท ยังอยู่ขั้น " + BR[ti][1] + "% เดิม");
+  if (picks) line("เช่น " + picks);
+  line("ประหยัดภาษีได้ " + fmt(saveT) + " บาท");
+}
+var PICK_ORDER = [["health","ประกันสุขภาพ"],["life","ประกันชีวิต"],["annuity","บำนาญ"],["rmf","RMF"],["nsf","กอช."],["tesg","Thai ESG"],["parentHealth","ประกันสุขภาพพ่อแม่"],["spouseLife","ประกันชีวิตคู่สมรส"]];
+function allocate(d0, dFull, amt){
+  var d = Object.assign({}, d0), left = amt;
+  PICK_ORDER.forEach(function(p){ var k = p[0], add = Math.max(0, num(dFull[k]) - num(d0[k])), x = Math.min(add, left); if (x > 0){ d[k] = num(d0[k]) + x; left -= x; } });
+  return d;
+}
+function pickList(d0, dFull, amt){
+  var left = amt, out = [];
+  PICK_ORDER.forEach(function(p){ var k = p[0], add = Math.max(0, num(dFull[k]) - num(d0[k])), x = Math.min(add, left); if (x > 0.5){ out.push(p[1] + " +" + fmt(x)); left -= x; } });
+  return out.join(", ");
 }
 $("cFromBefore").addEventListener("click", function(){ st.custom = {}; ADJ = {}; updateTab2(true); });
-$("cFromFull").addEventListener("click", function(){
-  var s = scenarios();
-  ADJ = {}; st.custom = {};
-  Object.keys(BUY).forEach(function(k){ var a = Math.round(num(s.dF[k]) - num(s.dB[k])); if (a > 0 && buyEligible(k, s)) st.custom[k] = String(a); });
-  updateTab2(true);
-});
 
 /* ===== บันทึกรูป / ส่ง LINE ===== */
 function loadH2C(){
