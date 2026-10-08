@@ -346,6 +346,20 @@ label.f{font-size:17px;font-weight:700}
 }
 .foot div{margin:2px 0}
 @media (max-width:600px){.tab{font-size:16px;padding:10px 2px 12px;white-space:nowrap}}
+/* ===== v1.9 ===== */
+.ledger th.c3,.br th.c3{background:#B45F06}
+.ledger td.c3,.br td.c3{background:#FFF4E5}
+.ledger tr.sh td{background:#E3EEF9;color:#1B3A7A;border-bottom-color:#C9DCF1}
+.scard.c{border-top-color:#E08A1E;background:#FFF7EC}
+.roi .blk.c{background:#FFF7EC;border-color:#F3D3A8}
+.refund{color:#2E7D0F!important;font-weight:700}
+.owe{color:#C0392B!important;font-weight:700}
+.rlbl{display:block;font-size:12.5px;font-weight:700;color:#2E7D0F}
+.share-card .cin-s.ph{display:none}
+.notes-box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:10px 0}
+.notes-box summary{cursor:pointer;font-weight:700;color:#1F4FA0;list-style:revert}
+.notes-box[open] summary{margin-bottom:6px}
+.badge{font-size:12.5px}
 /* ===== v1.8 โลโก้ ===== */
 .top-in{align-items:center}
 .logo{flex:none;width:clamp(76px,22vw,104px);height:clamp(76px,22vw,104px);border-radius:16px;box-shadow:0 3px 12px rgba(0,0,0,.25);background:#fff;display:block}
@@ -436,14 +450,14 @@ label.f{font-size:17px;font-weight:700}
     </div>
     <div class="hint" id="shareMsg" role="status" style="margin:-4px 2px 10px"></div>
     <div class="ledger-wrap" id="ledgerWrap"><table class="ledger" id="ledger"></table></div>
-    <div class="note note-lines no-share">
+    <details class="note note-lines no-share notes-box"><summary>รายละเอียด</summary>
       <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนที่ซื้อเพิ่มได้ จนเต็มเพดานของลูกค้า (คิดจาก % ของรายได้และวงเงินกลุ่ม)</div>
       <div>• ลำดับการเติม: ประกันชีวิต/สุขภาพ → บำนาญ → RMF → กอช. → Thai ESG</div>
       <div>• ตัวเลขสีเขียว (+) คือยอดที่ซื้อเพิ่มได้อีก</div>
       <div>• คอลัมน์ตามใจลูกค้า ใส่ยอดที่จะซื้อเพิ่มในช่องว่าง ใต้ช่องมียอดแนะนำ ตรงกับคอลัมน์ใช้สิทธิ์เต็ม</div>
       <div>• กลุ่มเกษียณเกิน 500,000 ระบบลดตัวอื่นให้อัตโนมัติ ลด RMF ก่อน → กอช. → บำนาญ (เก็บประกันไว้ท้ายสุด)</div>
       <div>• PVD กองทุนครู และประกันสังคม หักจากเงินเดือนแล้ว จึงไม่มีช่องให้เพิ่ม</div>
-    </div>
+    </details>
 
 
     <div class="sec2" id="brSec">
@@ -462,14 +476,14 @@ label.f{font-size:17px;font-weight:700}
 
 <div class="bar" id="bar">
   <div class="bar-in">
-    <div class="bar-t">ภาษีที่ลูกค้าจ่ายเอง (ประมาณ)<b class="num" id="barTax">0</b></div>
+    <div class="bar-t"><span id="barLbl">ภาษีที่ลูกค้าจ่ายเอง (ประมาณ)</span><b class="num" id="barTax">0</b></div>
     <button class="btn btn-p" id="barGo">คำนวณและวางแผน</button>
   </div>
 </div>
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "1.8.1";
+var APP_VERSION = "1.9.0";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "8 ต.ค. 2569";
 
@@ -1131,10 +1145,12 @@ function onData(){
     ui.box.classList.toggle("on", !!st.sel[it.id] && !msg);
   });
   var v = effV(), d = effD(), r = computeAll(v, d);
-  $("barTax").textContent = fmt(r.selfTax) + " บาท";
+  var bt = r.wht > 0 ? r.payable : r.selfTax;
+  $("barLbl").textContent = bt < -0.5 ? "เงินคืนภาษี (ประมาณ)" : (r.wht > 0 ? "ภาษีที่ต้องจ่ายเพิ่ม (ประมาณ)" : "ภาษีที่ลูกค้าจ่ายเอง (ประมาณ)");
+  $("barTax").textContent = fmt(Math.abs(bt)) + " บาท"; $("barTax").className = "num " + (bt < -0.5 ? "refund" : (bt > 0.5 ? "owe" : ""));
   ["life","retire","esg"].forEach(function(k){
     var m = $("m_" + k); if (!m) return; var g = r.groups[k], full = g.max > 0 && g.used >= g.max - 0.5;
-    m.textContent = "ใช้ไป " + fmt(g.used) + " / " + fmt(g.max) + (full ? " ✓ เต็มแล้ว" : ""); m.classList.toggle("full", full);
+    m.textContent = "ใช้ไป " + fmt(g.used) + " / " + fmt(g.max) + (full ? " · เต็มแล้ว" : ""); m.classList.toggle("full", full);
   });
   /* คำเตือนรายช่อง ค่าลดหย่อน */
   DED_MONEY.forEach(function(m){
@@ -1346,7 +1362,7 @@ function renderTab2(){
   }
   if (S0.rB.wht > 0){
     row("หักภาษี ณ ที่จ่ายแล้ว", null, function(r){ return r.wht; }, { minus:true });
-    row("ต้องชำระเพิ่ม / (ได้คืน)", null, function(r){ return r.payable; }, { cls:"t", signed:true });
+    row("ภาษีที่ต้องจ่ายเพิ่ม / เงินคืนภาษี", null, function(r){ return r.payable; }, { cls:"t", signed:true });
   }
   row(GU ? "ลูกค้าประหยัดภาษีได้" : "ภาษีที่ประหยัดได้", null, function(r, s){ return s.rB.selfTax - r.selfTax; }, { cls:"save", skipBefore:true });
   if (GU) row("นายจ้างประหยัดได้", "ภาษีที่นายจ้างออกให้ลดลง", function(r, s){ return s.rB.empPaid - r.empPaid; }, { skipBefore:true });
@@ -1368,7 +1384,7 @@ function updateTab2(initial){
     if (c.edit){
       var k = c.edit.k, uB = s.rB.U[k], uF = s.rF.U[k], uC = s.rC.U[k];
       c.bL1.textContent = fmt(uB); c.bL2.innerHTML = "";
-      if (isFull(k, s.rB)) c.bL2.appendChild(el("span", { class:"badge" }, "✓ ใช้สิทธิ์เต็ม"));
+      if (isFull(k, s.rB)) c.bL2.appendChild(el("span", { class:"badge" }, "เต็มแล้ว"));
       c.fL1.textContent = fmt(uB); c.fL2.innerHTML = ""; c.fL3.textContent = "";
       if (uF - uB > 0.5) c.fL2.appendChild(el("span", { class:"add" }, "+" + fmt(uF - uB)));
       if (k === "annuity" && c.buy){
@@ -1402,7 +1418,7 @@ function updateTab2(initial){
       cols.forEach(function(col, i){
         var g = col[1].groups[c.meter], td = c.tds[i]; td.innerHTML = "";
         td.appendChild(el("b", null, fmt(g.used))); td.appendChild(document.createTextNode(" / " + fmt(g.max)));
-        if (i === 0 && g.max > 0 && g.used >= g.max - 0.5){ td.appendChild(document.createElement("br")); td.appendChild(el("span", { class:"badge" }, "✓ ใช้สิทธิ์เต็ม")); }
+        if (i === 0 && g.max > 0 && g.used >= g.max - 0.5){ td.appendChild(document.createElement("br")); td.appendChild(el("span", { class:"badge" }, "เต็มแล้ว")); }
       });
       return;
     }
@@ -1410,8 +1426,12 @@ function updateTab2(initial){
       var td = c.tds[i];
       if (c.opts.skipBefore && i === 0){ td.textContent = "–"; return; }
       var val = c.get(col[1], s, col[0]);
-      td.textContent = cellText(val, c.opts);
-      td.classList.toggle("neg", !!c.opts.signed && val < 0);
+      td.textContent = c.opts.signed ? fmt(Math.abs(val)) : cellText(val, c.opts);
+      td.classList.toggle("neg", false);
+      if (c.opts.signed){
+        td.classList.toggle("refund", val < -0.5); td.classList.toggle("owe", val > 0.5);
+        if (val < -0.5) td.insertBefore(el("span", { class:"rlbl" }, "เงินคืนภาษี"), td.firstChild);
+      }
       if (c.opts.m2){ var R = col[1]; var why = R.nonSal < 120000 ? "เงินได้ไม่ถึง 120,000 ไม่ต้องคิด" : (R.minExempt ? "ไม่เกิน 5,000 ได้รับยกเว้น" : ""); if (why) td.appendChild(el("span", { class:"cap hint2" }, why)); }
     });
   });
@@ -1428,8 +1448,12 @@ function renderSummary(s){
     return d;
   }
   function taxLines(r){
-    if (!GU) return [["ภาษีที่ต้องเสีย", fmt(r.selfTax), "tx"]];
-    return [["ภาษีรวม", fmt(r.taxAfterCredit)], ["นายจ้างออกให้", fmt(r.empPaid)], ["ลูกค้าจ่ายเอง", fmt(r.selfTax), "tx"]];
+    var L = [];
+    if (GU) L.push(["ภาษีรวม", fmt(r.taxAfterCredit)], ["นายจ้างออกให้", fmt(r.empPaid)]);
+    var t = r.wht > 0 ? r.payable : r.selfTax;
+    if (t < -0.5) L.push(["เงินคืนภาษี", fmt(-t), "tx refund"]);
+    else L.push([r.wht > 0 ? "ภาษีที่ต้องจ่ายเพิ่ม" : (GU ? "ลูกค้าจ่ายเอง" : "ภาษีที่ต้องเสีย"), fmt(t), "tx owe"]);
+    return L;
   }
   function planLines(r, ex){
     var save = Math.max(0, b - r.selfTax);
@@ -1557,6 +1581,35 @@ function cloneClean(node){
   c.querySelectorAll("[id]").forEach(function(x){ x.removeAttribute("id"); });
   return c;
 }
+function cellEmpty(td){
+  var c = td.cloneNode(true);
+  c.querySelectorAll(".cap,.full-note,.badge,.cin-s.ph,.rlbl").forEach(function(x){ x.remove(); });
+  return /^[\s0−\-–,.]*$/.test(c.textContent);
+}
+function pruneEmpty(wrap){
+  var rows = Array.prototype.slice.call(wrap.querySelectorAll("tbody tr"));
+  rows.forEach(function(tr){
+    var cl = tr.className;
+    if (/\b(h|sh|sp|meter)\b/.test(cl)) return;
+    var tds = Array.prototype.slice.call(tr.children).slice(1);
+    if (tds.length && tds.every(cellEmpty)) tr.remove();
+  });
+  /* หัวข้อย่อยหรือมิเตอร์ที่ไม่มีแถวข้อมูลเหลือ */
+  var all = Array.prototype.slice.call(wrap.querySelectorAll("tbody tr"));
+  function sweep(lvl, stop){
+    var all = Array.prototype.slice.call(wrap.querySelectorAll("tbody tr"));
+    all.forEach(function(tr, i){
+      if (!lvl.test(tr.className)) return;
+      var has = false;
+      for (var j = i + 1; j < all.length; j++){ var c = all[j].className; if (stop.test(c)) break; if (!/\b(meter|sh)\b/.test(c)){ has = true; break; } }
+      if (!has){ for (var k = i + 1; k < all.length && !stop.test(all[k].className); k++) all[k].remove(); tr.remove(); }
+    });
+  }
+  sweep(/\bsh\b/, /\b(h|sh|sp|t)\b/);
+  sweep(/\bh\b/, /\b(h|sp)\b/);
+  Array.prototype.slice.call(wrap.querySelectorAll("tbody tr.sp")).forEach(function(tr){ var n = tr.nextElementSibling; if (n && /\bsp\b/.test(n.className)) tr.remove(); });
+  return wrap;
+}
 function buildShareCard(){
   var w = $("p2").clientWidth || 390;
   var card = el("div", { class:"share-card", style:"width:" + (w + 28) + "px" });
@@ -1566,7 +1619,7 @@ function buildShareCard(){
       el("div", null, el("h2", null, "สรุปการวางแผนภาษี ปี 2569"), el("div", null, "ลูกค้า: " + (st.cust.name || "-")), st.cust.age ? el("div", null, "อายุ " + st.cust.age + " ปี") : null, el("div", null, "วันที่ " + today))),
     el("div", { class:"r" }, el("div", null, "ผู้วางแผน"), el("b", null, planner.name || "-"), el("div", null, planner.phone || ""))));
   card.appendChild(cloneClean($("summary")));
-  card.appendChild(cloneClean($("ledgerWrap")));
+  card.appendChild(pruneEmpty(cloneClean($("ledgerWrap"))));
   card.appendChild(cloneClean($("brSec")));
   card.appendChild(cloneClean($("roi")));
   card.appendChild(el("div", { class:"sf" }, "Tax Planning by ป้าเป็ด CFP® v" + APP_VERSION + " · ข้อมูลภาษี ณ " + DATA_AS_OF + " · ตัวเลขเป็นการประมาณเพื่อการวางแผน"));
