@@ -361,6 +361,7 @@ label.f{font-size:17px;font-weight:700}
 .notes-box[open] summary{margin-bottom:6px}
 .badge{font-size:12.5px}
 /* ===== v2.0 ===== */
+.ledger .l1.csum{color:#B45F06}
 .ledger tr.m2row{display:none}
 .ledger.show-m2 tr.m2row{display:table-row}
 .ledger tr.m2tog td{background:#F7FAFE;padding:4px 8px;text-align:left}
@@ -506,7 +507,7 @@ label.f{font-size:17px;font-weight:700}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "2.0.0";
+var APP_VERSION = "2.0.1";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "8 ต.ค. 2569";
 
@@ -1410,7 +1411,7 @@ function updateTab2(initial){
       if (isFull(k, s.rB)) c.bL2.appendChild(el("span", { class:"badge" }, "เต็มแล้ว"));
       c.fL1.textContent = fmt(uB); c.fL2.innerHTML = ""; c.fL3.textContent = "";
       if (uF - uB > 0.5) c.fL2.appendChild(el("span", { class:"add" }, "+" + fmt(uF - uB)));
-      c.cL1.textContent = fmt(uB);
+      c.cL1.textContent = fmt(uC); c.cL1.classList.toggle("csum", uC - uB > 0.5);
       c.cap.className = "cap"; c.cap.textContent = ""; c.cap2.textContent = "";
       if (c.inp){
         var mx = ownMax(k, s);
