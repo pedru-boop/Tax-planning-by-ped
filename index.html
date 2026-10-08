@@ -159,20 +159,13 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 }
 
 /* share card (rendered off-screen for image) */
-.share-card{position:fixed;left:-12000px;top:0;width:800px;background:#fff;padding:24px;font-family:var(--font);color:var(--ink)}
-.share-card .sh{display:flex;justify-content:space-between;gap:16px;border-bottom:3px solid var(--ink);padding-bottom:10px;margin-bottom:14px}
-.share-card .sh h2{margin:0;font-size:26px}
-.share-card .sh .r{text-align:right;font-size:16px}
-.share-card table.ledger{table-layout:auto}
-.share-card .ledger th,.share-card .br th{font-size:15px;padding:9px 8px}
-.share-card .ledger td,.share-card .br td{font-size:15px;padding:6px 8px}
-.share-card .ledger th:first-child{width:34%}
-.share-card .strip{grid-template-columns:repeat(3,1fr)}
-.share-card .strip>div{display:block;border-top:0;border-left:1px solid var(--line)}
-.share-card .strip>div:first-child{border-left:0}
-.share-card .strip .v{text-align:left;font-size:26px}
-.share-card .sf{margin-top:14px;font-size:14px;color:var(--muted);text-align:center}
-
+.share-card{position:fixed;left:-12000px;top:0;background:var(--bg);padding:14px;font-family:var(--font);color:var(--ink)}
+.share-card .shead{display:flex;justify-content:space-between;gap:12px;background:#fff;border-radius:12px;border:1px solid var(--line);padding:12px;margin-bottom:12px}
+.share-card .shead h2{margin:0 0 2px;font-size:19px}
+.share-card .shead .r{text-align:right;font-size:14px;white-space:nowrap}
+.share-card .sf{margin-top:12px;font-size:13px;color:var(--muted);text-align:center}
+.cin-s{display:block;width:100%;border:1.5px solid #9CC7B2;border-radius:8px;padding:6px;text-align:left;background:#fff;font-weight:700;color:var(--save)}
+.cin-s.ph{font-weight:400;color:#9AA7B4}
 .foot{text-align:center;color:var(--muted);font-size:13.5px;margin:24px 0 8px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 
@@ -196,7 +189,8 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 .fld.exp{background:#FFF4E8;border-radius:10px;padding:8px 10px;border-left:4px solid #D97706}
 .fld.exp label.f{color:#9A4A06}
 .legend-exp{display:inline-block;background:#FFF4E8;border-left:4px solid #D97706;padding:0 8px;border-radius:4px;color:#9A4A06}
-.item.locked{background:#F4F4F4}
+.item.locked{background:#F4F4F4;opacity:.5}
+.item.locked .item-h label{cursor:not-allowed}
 .item.locked .ttl{color:#6B7280}
 .item.locked .body{display:none}
 .lockmsg{display:none;margin:0 12px 10px;padding:8px 12px;background:#FDECEC;color:#8A1F17;border-radius:8px;font-size:15px}
@@ -237,7 +231,25 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 .cases .row:last-child{border-bottom:0}
 .cases .row small{color:var(--muted);display:block;font-size:13px}
 .cases .acts{display:flex;gap:6px;flex:none}
-.share-card .roi .in3,.share-card .brtoggle{display:none}
+.share-card .roi .in3,.share-card .brtoggle,.share-card .no-share{display:none}
+.ledger .l1{display:block;min-height:1.45em}
+.ledger .cap.hint2{color:var(--muted)}
+.ledger .l2{display:flex;align-items:center;justify-content:center;min-height:40px;margin-top:4px}
+.ledger .l2 .cin{margin-top:0}
+.ledger .l2 .add{display:inline}
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+@media (max-width:600px){.sumgrid{grid-template-columns:1fr}}
+.scard{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.scard.f{border-top:5px solid var(--ink2)}
+.scard.b{border-top:5px solid #94A3B8}
+.scard.c{border-top:5px solid var(--save);background:var(--save-soft)}
+.scard h4{margin:0 0 6px;font-size:16.5px}
+.scard .ln{display:flex;justify-content:space-between;gap:8px;font-size:15.5px;padding:3px 0;border-bottom:1px dashed #E1E7EE}
+.scard .ln:last-child{border-bottom:0}
+.scard .ln b{white-space:nowrap}
+.scard .tx{font-size:21px}
+.warn div+div,.brtip div+div{margin-top:4px}
+.note-lines div{margin:3px 0}
 </style>
 </head>
 <body>
@@ -322,7 +334,13 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
     </div>
     <div class="hint" id="shareMsg" role="status" style="margin:-4px 2px 10px"></div>
     <div class="ledger-wrap" id="ledgerWrap"><table class="ledger" id="ledger"></table></div>
-    <p class="note">คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนจนเต็มสิทธิ์ที่เหลือ ตามลำดับ ประกันชีวิต/สุขภาพ → บำนาญ → RMF → กอช. → Thai ESG ตัวเลขสีเขียว (+) คือซื้อเพิ่มได้อีก ในคอลัมน์ตามใจลูกค้า ใส่ยอดที่จะซื้อเพิ่มในช่องว่าง รายการที่ใช้สิทธิ์เต็มแล้วจะไม่มีช่องให้เติม</p>
+    <div class="note note-lines no-share">
+      <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนที่ซื้อเพิ่มได้ จนเต็มสิทธิ์ตามรายได้ของลูกค้า</div>
+      <div>• ลำดับการเติม: ประกันชีวิต/สุขภาพ → บำนาญ → RMF → กอช. → Thai ESG</div>
+      <div>• ตัวเลขสีเขียว (+) คือยอดที่ซื้อเพิ่มได้อีก</div>
+      <div>• คอลัมน์ตามใจลูกค้า ใส่ยอดที่จะซื้อเพิ่มในช่องว่าง ช่องจะบอกว่าซื้อได้อีกเท่าไร</div>
+      <div>• PVD กองทุนครู และประกันสังคม หักจากเงินเดือนแล้ว จึงไม่มีช่องให้เพิ่ม</div>
+    </div>
 
     <div class="roi" id="roi"></div>
 
@@ -347,7 +365,7 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "1.3.0";
+var APP_VERSION = "1.4.0";
 var APP_UPDATED = "8 ต.ค. 2569";
 
 function num(v){ var n = parseFloat(String(v == null ? "" : v).replace(/,/g,"")); return isNaN(n) || n < 0 ? 0 : n; }
@@ -369,6 +387,7 @@ function el(tag, attrs){
   return e;
 }
 function $(id){ return document.getElementById(id); }
+document.addEventListener("keydown", function(e){ var t = e.target; if (e.key === "Enter" && t && t.tagName === "INPUT"){ e.preventDefault(); t.blur(); } });
 function tapClear(inp){
   inp.addEventListener("focus", function(){ this.dataset.prev = this.value; this.dataset.typed = ""; this.value = ""; });
   inp.addEventListener("input", function(){ this.dataset.typed = "1"; });
@@ -400,9 +419,10 @@ var INCOME_ITEMS = [
       "เช่น ค่านายหน้า ค่าคอมมิชชั่น ค่าธรรมเนียม เบี้ยประชุม ค่ารับจ้างทำงาน",
       "<b>ตัวแทนประกันชีวิต/ประกันวินาศภัย</b>: ค่านายหน้าเป็น 40(2) แต่ถ้าตั้งสำนักงาน ลงทุนอุปกรณ์ จ้างพนักงานเอง อาจจัดเป็น 40(8)",
       "<b>สายออนไลน์</b>: Affiliate ปักตะกร้า TikTok Shop / Shopee / Lazada, รับจ้างรีวิว, รับจ้างโปรโมตสินค้าหรือแบรนด์, รับจ้างทำคอนเทนต์ให้แบรนด์",
+      "<b>สินค้าที่แบรนด์ส่งให้</b> เพื่อรีวิวหรือเป็นพรีเซนเตอร์ เช่น บริษัทรองเท้าส่งรองเท้าวิ่งให้นักวิ่ง ต้องนับเป็นเงินได้<b>ตามราคาตลาดของสินค้า</b> เพราะเงินได้พึงประเมินรวมถึงทรัพย์สินที่คิดเป็นเงินได้ ให้รวมมูลค่าไว้ในช่องเงินได้นี้",
       "หักค่าใช้จ่ายเหมา <b>50%</b> รวมกับ 40(1) แล้ว<b>ไม่เกิน 100,000 บาท</b>"],
       "ตัวอย่าง: ตัวแทนประกัน นายหน้าขายบ้านที่ดิน กรรมการที่ได้เบี้ยประชุม ฟรีแลนซ์ออกแบบกราฟิก แปลภาษา เขียนโปรแกรม ติวเตอร์ อินฟลูเอนเซอร์ที่รับจ้างรีวิว"),
-    fields:[ M("commission","เงินได้ทั้งปี (บาท)"), M("whtComm","ภาษีที่ถูกหัก ณ ที่จ่ายทั้งปี") ] },
+    fields:[ M("commission","เงินได้ทั้งปี รวมมูลค่าสินค้าที่ได้รับ (บาท)"), M("whtComm","ภาษีที่ถูกหัก ณ ที่จ่ายทั้งปี") ] },
   { id:"i3", code:"40(3)", title:"ค่าลิขสิทธิ์ ค่าแฟรนไชส์ กู๊ดวิลล์",
     def:D(["ค่าแห่งลิขสิทธิ์ สิทธิบัตร เครื่องหมายการค้า กู๊ดวิลล์ ค่าแฟรนไชส์ และเงินปี",
       "ถ้าสัญญาเป็น<b>รับจ้างทำ</b>งานชิ้นนั้น จะเป็น 40(2) แต่ถ้าได้เงินจาก<b>การให้ใช้ลิขสิทธิ์</b>ผลงานของตัวเอง เป็น 40(3)",
@@ -459,6 +479,7 @@ var INCOME_ITEMS = [
     def:D(["เงินได้จาก<b>ธุรกิจ การพาณิชย์</b> เกษตรกรรม อุตสาหกรรม การขนส่ง และเงินได้อื่นที่ไม่เข้า 40(1)–(7)",
       "ส่วนใหญ่หักค่าใช้จ่ายเหมา <b>60%</b> หรือหักตามจริงพร้อมหลักฐาน",
       "<b>สายออนไลน์</b>: ขายของออนไลน์ ไลฟ์ขายสินค้าของตัวเอง ซื้อมาขายไป อินฟลูเอนเซอร์ที่มีแบรนด์ของตัวเอง รายได้ส่วนแบ่งโฆษณาจากแพลตฟอร์มมักจัดเป็น 40(8) ให้ดูลักษณะสัญญาประกอบ",
+      "<b>ของขวัญจากการไลฟ์สด</b> เช่น TikTok Gift / Diamond ที่แลกเป็นเงิน ส่วนใหญ่จัดเป็น 40(8) ยังไม่มีแนววินิจฉัยเฉพาะ ให้ยืนยันกับสรรพากร 1161",
       "<b>นักแสดง นักร้อง นักกีฬา</b>: 300,000 บาทแรกหัก 60% ส่วนที่เกินหัก 40%",
       "ตัวแทนประกันที่ตั้งสำนักงาน ลงทุนอุปกรณ์ จ้างพนักงานเอง อาจจัดเป็น 40(8)"],
       "ตัวอย่าง: ร้านอาหาร ร้านกาแฟ แม่ค้าออนไลน์ ชาวสวน รถรับจ้างขนส่ง ดารา นักร้อง"),
@@ -695,7 +716,7 @@ function compute(v, d, gU){
   var taxAfterCredit = tax - credits;
   var wht = num(v.whtSalary) + num(v.whtComm) + num(v.whtRoyalty) + num(v.whtRent) + num(v.whtProf) + num(v.whtCon) + num(v.whtBiz);
   var retMax = Math.min(500000, capAnn + capRmf + (nsfOk ? 30000 : 0) + (num(d.pvd) > 0 ? capPvd : 0) + (num(d.teacher) > 0 ? capTeach : 0));
-  return { inc:inc, exps:exps, gU:gU, gross:gross, expense:expense, afterExp:afterExp, exempt:exempt, U:U, totalDed:totalDed, net:net,
+  return { preDon:pre, beforeDon:beforeDon, inc:inc, exps:exps, gU:gU, gross:gross, expense:expense, afterExp:afterExp, exempt:exempt, U:U, totalDed:totalDed, net:net,
     rate:marginal(net), prog:prog, taxMin:taxMin, usedMin:taxMin > prog, tax:tax, credits:credits, taxAfterCredit:taxAfterCredit,
     wht:wht, payable:taxAfterCredit - wht, annToLife:annToLife, nsfOk:nsfOk,
     caps:{ annuity:capAnn, rmf:capRmf, pvd:capPvd, teacher:capTeach, esg:capEsg },
@@ -725,26 +746,33 @@ function effD(){
 }
 function parentHealthEligible(dB){ return active("parentHealth") || (active("parents") && num(dB.parents) > 0); }
 /* ซื้อเพิ่มได้อีกไหม (ยังไม่เต็มสิทธิ์) */
-function canAdd(k, r){
+var BUY = { life:1, health:1, annuity:1, rmf:1, nsf:1, tesg:1, tesgx:1, spouseLife:1, parentHealth:1 };
+/* ซื้อเพิ่มได้อีกเท่าไร (คิดจากรายได้และสิทธิ์ที่ใช้ไปแล้ว) */
+function maxAdd(k, r){
+  if (!BUY[k]) return 0;
   var U = r.U, G = r.groups;
-  if (k === "life") return G.life.used < 99999.5;
-  if (k === "health") return G.life.used < 99999.5 && U.health < 24999.5;
-  if (k === "annuity" || k === "rmf" || k === "pvd" || k === "teacher" || k === "nsf"){
-    if (k === "nsf" && !r.nsfOk) return false;
-    if (G.retire.used >= 499999.5) return false;
-    if (k === "annuity") return (U.annuity - r.annToLife) < r.caps.annuity - 0.5 || G.life.used < 99999.5;
-    if (k === "rmf") return U.rmf < r.caps.rmf - 0.5;
-    if (k === "pvd") return U.pvd < r.caps.pvd - 0.5;
-    if (k === "teacher") return U.teacher < r.caps.teacher - 0.5;
-    return U.nsf < 29999.5;
-  }
-  if (k === "tesg" || k === "tesgx") return G.esg.used < G.esg.max - 0.5;
-  if (k === "spouseLife") return !!st.sel.spouse && U.spouseLife < 9999.5;
-  var CAP = { social:10500, parentHealth:15000, home:100000, maternity:60000, ereceipt:50000, party:10000 };
-  if (CAP[k]) return U[k] < CAP[k] - 0.5;
-  return true;
+  var lifeRoom = Math.max(0, 100000 - G.life.used), retRoom = Math.max(0, 500000 - G.retire.used);
+  var annGrp = U.annuity - r.annToLife, x = 0;
+  if (k === "life") x = lifeRoom;
+  else if (k === "health") x = Math.min(25000 - U.health, lifeRoom);
+  else if (k === "annuity") x = Math.min(Math.max(0, r.caps.annuity - annGrp), retRoom) + lifeRoom;
+  else if (k === "rmf") x = Math.min(r.caps.rmf - U.rmf, retRoom);
+  else if (k === "nsf") x = r.nsfOk ? Math.min(30000 - U.nsf, retRoom) : 0;
+  else if (k === "tesg" || k === "tesgx") x = G.esg.max - G.esg.used;
+  else if (k === "spouseLife") x = st.sel.spouse ? 10000 - U.spouseLife : 0;
+  else if (k === "parentHealth") x = 15000 - U.parentHealth;
+  return Math.max(0, Math.floor(x));
 }
-function isFull(k, r){ var U = r.U; if (U[k] <= 0.5 && k !== "health") return false; if (k === "health" && U.health <= 0.5) return false; return !canAdd(k, r) && ["donDouble","donGeneral"].indexOf(k) < 0; }
+function canAdd(k, r){ return maxAdd(k, r) > 0; }
+function isFull(k, r){
+  var U = r.U, G = r.groups;
+  if (BUY[k]) return U[k] > 0.5 && !canAdd(k, r);
+  if (k === "social") return U.social >= 10499.5;
+  if (k === "pvd") return U.pvd > 0.5 && (U.pvd >= r.caps.pvd - 0.5 || G.retire.used >= 499999.5);
+  if (k === "teacher") return U.teacher > 0.5 && (U.teacher >= r.caps.teacher - 0.5 || G.retire.used >= 499999.5);
+  var CAP = { home:100000, maternity:60000, ereceipt:50000, party:10000 };
+  return !!CAP[k] && U[k] >= CAP[k] - 0.5;
+}
 function fullD(dB, rB){
   var f = Object.assign({}, dB), U = rB.U, G = rB.groups;
   var room = Math.max(0, 100000 - G.life.used);
@@ -763,9 +791,10 @@ function fullD(dB, rB){
 function extraPay(dX, dB){ var s = 0; DED_MONEY.forEach(function(m){ s += Math.max(0, num(dX[m.k]) - num(dB[m.k])); }); return s; }
 function shownMoney(dB, rB){
   return DED_MONEY.filter(function(m){
+    if (m.g === "don") return false;
     if (active(m.id)) return true;
     if (["life","health","annuity","rmf","tesg","tesgx"].indexOf(m.k) >= 0) return true;
-    if (m.k === "nsf") return rB.nsfOk;
+    if (m.k === "nsf") return rB.nsfOk && !lockMsg("nsf");
     if (m.k === "parentHealth") return parentHealthEligible(dB);
     if (m.k === "spouseLife") return !!dB.spouse;
     return false;
@@ -776,7 +805,7 @@ function scenarios(){
   var dF = fullD(dB, rB), rF = computeAll(v, dF);
   var shown = shownMoney(dB, rB);
   var dC = Object.assign({}, dB);
-  shown.forEach(function(m){ if (canAdd(m.k, rB)) dC[m.k] = num(dB[m.k]) + num(st.custom[m.k]); });
+  shown.forEach(function(m){ var mx = maxAdd(m.k, rB); if (mx > 0) dC[m.k] = num(dB[m.k]) + Math.min(num(st.custom[m.k]), mx); });
   var rC = computeAll(v, dC);
   return { v:v, dB:dB, dF:dF, dC:dC, rB:rB, rF:rF, rC:rC, shown:shown };
 }
@@ -896,6 +925,8 @@ function onData(){
     var msg = lockMsg(it.id);
     ui.box.classList.toggle("locked", !!msg);
     ui.lock.textContent = msg ? "🔒 " + msg : "";
+    if (msg && st.sel[it.id]){ st.sel[it.id] = false; ui.cb.checked = false; }
+    ui.cb.disabled = !!msg;
     ui.box.classList.toggle("on", !!st.sel[it.id] && !msg);
   });
   var v = effV(), d = effD(), r = computeAll(v, d);
@@ -1022,16 +1053,23 @@ function renderTab2(){
     CELLS.push({ meter:gk, tds:tds });
   }
   function editRow(m){
+    var buy = !!BUY[m.k];
     var tdB = el("td"), tdF = el("td"), tdC = el("td", { class:"c3" });
-    var cur = el("span", { class:"curv" });
-    var inp = el("input", { class:"cin", inputmode:"numeric", placeholder:"+ เพิ่ม", "aria-label":"เพิ่ม " + m.title });
-    var cap = el("span", { class:"cap" });
-    tapClear(inp);
-    inp.addEventListener("input", function(){ var d = digits(this.value); st.custom[m.k] = d; this.value = withCommas(d); try { this.setSelectionRange(this.value.length, this.value.length); } catch(e){} updateTab2(); });
-    tdC.appendChild(cur); tdC.appendChild(inp); tdC.appendChild(cap);
+    var bL1 = el("span", { class:"l1" }), bL2 = el("div", { class:"l2" });
+    var fL1 = el("span", { class:"l1" }), fL2 = el("div", { class:"l2" });
+    var cL1 = el("span", { class:"l1" }), cL2 = el("div", { class:"l2" });
+    tdB.appendChild(bL1); tdB.appendChild(bL2); tdF.appendChild(fL1); tdF.appendChild(fL2); tdC.appendChild(cL1); tdC.appendChild(cL2);
+    var inp = null, cap = el("span", { class:"cap" });
+    if (buy){
+      inp = el("input", { class:"cin", inputmode:"numeric", "aria-label":"เพิ่ม " + m.title });
+      tapClear(inp);
+      inp.addEventListener("input", function(){ var d = digits(this.value); st.custom[m.k] = d; this.value = withCommas(d); try { this.setSelectionRange(this.value.length, this.value.length); } catch(e){} updateTab2(); });
+      cL2.appendChild(inp);
+    }
+    tdC.appendChild(cap);
     var note = el("small");
-    tb.appendChild(el("tr", null, el("td", { class:"lbl" }, m.title, note), tdB, tdF, tdC));
-    CELLS.push({ edit:m, tdB:tdB, tdF:tdF, cur:cur, inp:inp, cap:cap, note:note });
+    tb.appendChild(el("tr", null, el("td", { class:"lbl" }, m.title, buy ? null : el("small", null, m.k === "pvd" || m.k === "teacher" || m.k === "social" ? "หักจากเงินเดือนแล้ว เพิ่มย้อนหลังไม่ได้" : "ไม่ใช่รายการที่ซื้อเพิ่มได้"), note), tdB, tdF, tdC));
+    CELLS.push({ edit:m, buy:buy, bL1:bL1, bL2:bL2, fL1:fL1, fL2:fL2, cL1:cL1, cL2:cL2, inp:inp, cap:cap, note:note });
   }
   var S0 = scenarios();
   head("รายได้ (เงินได้พึงประเมิน)", "h inc");
@@ -1059,14 +1097,23 @@ function renderTab2(){
   if (active("children")) row("บุตร", null, function(r){ return r.U.children; });
   if (active("parents")) row("อุปการะบิดามารดา", null, function(r){ return r.U.parents; });
   if (active("disabledDep")) row("อุปการะคนพิการ/ทุพพลภาพ", null, function(r){ return r.U.disabledDep; });
-  ["life","ins2","retire","esg","other","don"].forEach(function(g){
+  ["life","ins2","retire","esg","other"].forEach(function(g){
     var items = S0.shown.filter(function(m){ return m.g === g; }); if (!items.length) return;
     head(GROUPS[g], "sh"); items.forEach(editRow);
     if (GMETER[g]) meterRow(g);
   });
-  row("รวมค่าลดหย่อน", null, function(r){ return r.totalDed; }, { cls:"t" });
+  row("รวมค่าลดหย่อน (ก่อนเงินบริจาค)", null, function(r){ return r.preDon; }, { cls:"t" });
+  row("เงินได้หลังหักค่าลดหย่อน", "ใช้เป็นฐานคำนวณเงินบริจาค", function(r){ return r.beforeDon; }, { cls:"t" });
+  if (active("donDouble") || active("donGeneral")){
+    spacer();
+    head("เงินบริจาค", "h ded");
+    head("ลำดับ: บริจาค 2 เท่าก่อน (ไม่เกิน 10% ของฐาน) แล้วจึงบริจาคทั่วไป (ไม่เกิน 10% ของฐานที่เหลือ)", "sh");
+    if (active("donDouble")) row("บริจาคเพื่อการศึกษา กีฬา รพ.รัฐ (2 เท่า)", "จ่ายจริง " + fmt(num(st.d.donDouble)) + " บาท", function(r){ return r.U.donDouble; }, { minus:true });
+    if (active("donGeneral")) row("บริจาคทั่วไป", "จ่ายจริง " + fmt(num(st.d.donGeneral)) + " บาท", function(r){ return r.U.donGeneral; }, { minus:true });
+  }
   spacer();
   head("ผลการคำนวณภาษี", "h res");
+  row("รวมค่าลดหย่อนทั้งหมด", null, function(r){ return r.totalDed; });
   row("เงินได้สุทธิ", null, function(r){ return r.net; }, { cls:"t" });
   row("อัตราภาษีขั้นสูงสุด", null, function(r){ return r.rate; }, { pct:true });
   row("ภาษีที่คำนวณได้", null, function(r){ return r.tax; }, { minNote:true });
@@ -1092,21 +1139,26 @@ function updateTab2(initial){
   var s = scenarios(), cols = [["B", s.rB], ["F", s.rF], ["C", s.rC]];
   CELLS.forEach(function(c){
     if (c.edit){
-      var k = c.edit.k, uB = s.rB.U[k], uF = s.rF.U[k], uC = s.rC.U[k], can = canAdd(k, s.rB);
-      c.tdB.innerHTML = ""; c.tdB.appendChild(document.createTextNode(fmt(uB)));
-      if (isFull(k, s.rB)){ c.tdB.appendChild(document.createElement("br")); c.tdB.appendChild(el("span", { class:"badge" }, "✓ ใช้สิทธิ์เต็ม")); }
-      c.tdF.innerHTML = ""; c.tdF.appendChild(el("span", { class:"curv" }, fmt(uB)));
-      if (uF - uB > 0.5) c.tdF.appendChild(el("span", { class:"add" }, "+" + fmt(uF - uB)));
-      c.cur.textContent = fmt(uB);
-      c.inp.style.display = can ? "" : "none";
-      if (!can) st.custom[k] = "";
-      if (initial || document.activeElement !== c.inp) c.inp.value = withCommas(st.custom[k] || "");
-      var add = can ? num(st.custom[k]) : 0;
-      c.cap.className = "cap";
-      if (add > 0){
-        if (num(s.dC[k]) > uC + 0.5){ c.cap.textContent = "เกินสิทธิ์ ใช้ได้รวม " + fmt(uC); }
-        else { c.cap.textContent = "รวม " + fmt(uC); c.cap.className = "cap ok"; }
-      } else c.cap.textContent = "";
+      var k = c.edit.k, uB = s.rB.U[k], uF = s.rF.U[k], uC = s.rC.U[k], mx = c.buy ? maxAdd(k, s.rB) : 0;
+      c.bL1.textContent = fmt(uB); c.bL2.innerHTML = "";
+      if (isFull(k, s.rB)) c.bL2.appendChild(el("span", { class:"badge" }, "✓ ใช้สิทธิ์เต็ม"));
+      c.fL1.textContent = fmt(uB); c.fL2.innerHTML = "";
+      if (uF - uB > 0.5) c.fL2.appendChild(el("span", { class:"add" }, "+" + fmt(uF - uB)));
+      c.cL1.textContent = fmt(uB);
+      c.cap.className = "cap"; c.cap.textContent = "";
+      if (c.inp){
+        c.inp.style.display = mx > 0 ? "" : "none";
+        c.inp.placeholder = "+ เพิ่ม";
+        if (mx <= 0) st.custom[k] = "";
+        if (initial || document.activeElement !== c.inp) c.inp.value = withCommas(st.custom[k] || "");
+        var add = num(st.custom[k]);
+        if (add <= 0 && mx > 0){ c.cap.textContent = "ซื้อได้อีก " + fmt(mx); c.cap.className = "cap hint2"; }
+        else if (add > mx) c.cap.textContent = "ซื้อเพิ่มได้สูงสุด " + fmt(mx);
+        else if (add > 0){
+          if (uC < uB + add - 0.5) c.cap.textContent = "ชนเพดานกลุ่ม ใช้ได้รวม " + fmt(uC);
+          else { c.cap.textContent = "รวม " + fmt(uC); c.cap.className = "cap ok"; }
+        }
+      }
       c.note.textContent = (k === "annuity" && s.rB.annToLife > 0.5) ? "ปัจจุบันใช้วงเงินประกันชีวิต " + fmt(s.rB.annToLife) : "";
       return;
     }
@@ -1133,14 +1185,26 @@ function renderSummary(s){
   var b = s.rB.taxAfterCredit, f = s.rF.taxAfterCredit, c = s.rC.taxAfterCredit;
   var exF = extraPay(s.dF, s.dB), exC = extraPay(s.dC, s.dB);
   var box = $("summary"); box.innerHTML = "";
-  function blk(cls, k, v, d){ return el("div", { class:cls }, el("div", { class:"k" }, k), el("div", { class:"v num" }, fmt(v)), d ? el("div", { class:"d" }, d) : null); }
-  function saveLine(save, ex){ if (save <= 0.5) return el("span", null, "ยังไม่ประหยัดภาษี"); return el("span", null, el("span", { class:"up" }, "ประหยัด " + fmt(save)), ex > 0 ? " ใช้เงิน " + fmt(ex) : ""); }
-  box.appendChild(el("div", { class:"strip" },
-    blk("s1", "ภาษีปัจจุบัน", b, el("span", null, "ฐานภาษี " + s.rB.rate + "%")),
-    blk("s2", "ใช้สิทธิ์เต็ม", f, saveLine(b - f, exF)),
-    blk("s3", "ตามใจลูกค้า", c, saveLine(b - c, exC))));
+  function card(cls, title, lines){
+    var d = el("div", { class:"scard " + cls }, el("h4", null, title));
+    lines.forEach(function(l){ d.appendChild(el("div", { class:"ln" }, el("span", null, l[0]), el("b", { class:l[2] || "" }, l[1]))); });
+    return d;
+  }
+  function planLines(tax, ex){
+    var save = Math.max(0, b - tax);
+    var L = [["ภาษีที่ต้องเสีย", fmt(tax), "tx"], ["ใช้เงินลงทุนเพิ่ม", fmt(ex)], ["ประหยัดภาษี", fmt(save), "up"]];
+    L.push(["คิดเป็น", ex > 0 ? (save / ex * 100).toFixed(1) + "% ของเงินลงทุน" : "–"]);
+    return L;
+  }
+  box.appendChild(el("div", { class:"sumgrid" },
+    card("b", "ก่อนวางแผน", [["ภาษีที่ต้องเสีย", fmt(b), "tx"], ["ฐานภาษีขั้นสูงสุด", s.rB.rate + "%"], ["เงินได้สุทธิ", fmt(s.rB.net)]]),
+    card("f", "ใช้สิทธิ์เต็มตามสรรพากรกำหนด", planLines(f, exF)),
+    card("c", "ตามใจลูกค้า", planLines(c, exC))));
   if (s.rF.net < 150000 && exF > 0)
-    box.appendChild(el("div", { class:"warn" }, "ใช้สิทธิ์เต็มแล้วเงินได้สุทธิเหลือ " + fmt(s.rF.net) + " บาท ต่ำกว่า 150,000 ที่ไม่ต้องเสียภาษีอยู่แล้ว ลดหย่อนเกินจุดคุ้มประมาณ " + fmt(150000 - s.rF.net) + " บาท"));
+    box.appendChild(el("div", { class:"warn" },
+      el("div", null, "⚠ ใช้สิทธิ์เต็มแล้ว เงินได้สุทธิเหลือ " + fmt(s.rF.net) + " บาท"),
+      el("div", null, "ต่ำกว่า 150,000 บาท ซึ่งไม่ต้องเสียภาษีอยู่แล้ว"),
+      el("div", null, "ลดหย่อนเกินจุดคุ้มประมาณ " + fmt(150000 - s.rF.net) + " บาท")));
 }
 function fv(pmt, r, n){ if (n <= 0) return 0; return r > 0 ? pmt * (Math.pow(1 + r, n) - 1) / r : pmt * n; }
 function renderRoi(s){
@@ -1197,13 +1261,19 @@ function renderBrackets(s){
   }
   tb.appendChild(el("tr", { class:"tot" }, el("td", null, "รวม"), el("td", null, fmt(net)), el("td"), el("td", null, fmt(r.prog)), el("td")));
   var tip = $("brTip"), lower = ti > 0 ? BR[ti - 1][0] : 0, inTop = Math.max(0, net - lower);
-  if (BR[ti][1] === 0) tip.textContent = "เงินได้สุทธิไม่เกิน 150,000 บาท ไม่ต้องเสียภาษี (ยกเว้นกรณีภาษีขั้นต่ำ 0.5%)";
-  else tip.textContent = "อยู่ขั้น " + BR[ti][1] + "% เงินได้ในขั้นนี้ " + fmt(inTop) + " บาท ถ้าลดหย่อนเพิ่มอีก " + fmt(inTop) + " บาท จะลงมาอยู่ขั้น " + BR[ti - 1][1] + "% และประหยัดภาษีได้ " + fmt(inTop * BR[ti][1] / 100) + " บาท";
+  tip.innerHTML = "";
+  if (BR[ti][1] === 0){ tip.appendChild(el("div", null, "เงินได้สุทธิไม่เกิน 150,000 บาท")); tip.appendChild(el("div", null, "ไม่ต้องเสียภาษี (ยกเว้นกรณีภาษีขั้นต่ำ 0.5%)")); }
+  else {
+    tip.appendChild(el("div", null, "อยู่ขั้นภาษี " + BR[ti][1] + "%"));
+    tip.appendChild(el("div", null, "เงินได้ในขั้นนี้ " + fmt(inTop) + " บาท"));
+    tip.appendChild(el("div", null, "ลดหย่อนเพิ่มอีก " + fmt(inTop) + " บาท จะลงมาอยู่ขั้น " + BR[ti - 1][1] + "%"));
+    tip.appendChild(el("div", null, "ประหยัดภาษีได้ " + fmt(inTop * BR[ti][1] / 100) + " บาท"));
+  }
 }
 $("cFromBefore").addEventListener("click", function(){ st.custom = {}; updateTab2(true); });
 $("cFromFull").addEventListener("click", function(){
   var s = scenarios();
-  s.shown.forEach(function(m){ var a = Math.round(num(s.dF[m.k]) - num(s.dB[m.k])); st.custom[m.k] = a > 0 && canAdd(m.k, s.rB) ? String(a) : ""; });
+  s.shown.forEach(function(m){ var a = Math.round(num(s.dF[m.k]) - num(s.dB[m.k])); st.custom[m.k] = a > 0 && BUY[m.k] && canAdd(m.k, s.rB) ? String(a) : ""; });
   updateTab2(true);
 });
 
@@ -1217,28 +1287,33 @@ function loadH2C(){
 }
 function cloneClean(node){
   var c = node.cloneNode(true);
-  c.querySelectorAll("input").forEach(function(i){ if (i.style.display === "none" || !i.value){ i.remove(); return; } var sp = el("b", { class:"add" }, "+" + i.value); i.parentNode.replaceChild(sp, i); });
+  c.querySelectorAll("input").forEach(function(i){
+    if (i.style.display === "none"){ i.remove(); return; }
+    var sp = el("span", { class:"cin-s" + (i.value ? "" : " ph") }, i.value ? i.value : (i.placeholder || ""));
+    i.parentNode.replaceChild(sp, i);
+  });
   c.querySelectorAll("[id]").forEach(function(x){ x.removeAttribute("id"); });
   return c;
 }
 function buildShareCard(){
-  var card = el("div", { class:"share-card" });
+  var w = $("p2").clientWidth || 390;
+  var card = el("div", { class:"share-card", style:"width:" + (w + 28) + "px" });
   var today = new Date().toLocaleDateString("th-TH", { day:"numeric", month:"long", year:"numeric" });
-  card.appendChild(el("div", { class:"sh" },
-    el("div", null, el("h2", null, "สรุปการวางแผนภาษี ปี 2569"), el("div", null, "ลูกค้า: " + (st.cust.name || "-") + (st.cust.age ? "   อายุ " + st.cust.age + " ปี" : "")), el("div", null, "วันที่ " + today)),
+  card.appendChild(el("div", { class:"shead" },
+    el("div", null, el("h2", null, "สรุปการวางแผนภาษี ปี 2569"), el("div", null, "ลูกค้า: " + (st.cust.name || "-")), st.cust.age ? el("div", null, "อายุ " + st.cust.age + " ปี") : null, el("div", null, "วันที่ " + today)),
     el("div", { class:"r" }, el("div", null, "ผู้วางแผน"), el("b", null, planner.name || "-"), el("div", null, planner.phone || ""))));
   card.appendChild(cloneClean($("summary")));
   card.appendChild(cloneClean($("ledgerWrap")));
   card.appendChild(cloneClean($("roi")));
-  var br = cloneClean($("brSec")); card.appendChild(br);
-  card.appendChild(el("div", { class:"sf" }, "Tax Plan by Ped v" + APP_VERSION + "  ตัวเลขเป็นการประมาณเพื่อการวางแผน"));
+  card.appendChild(cloneClean($("brSec")));
+  card.appendChild(el("div", { class:"sf" }, "Tax Plan by Ped v" + APP_VERSION + " ตัวเลขเป็นการประมาณเพื่อการวางแผน"));
   return card;
 }
 $("shareBtn").addEventListener("click", function(){
   var btn = this, msg = $("shareMsg"), card;
   btn.disabled = true; btn.textContent = "กำลังสร้างรูป..."; msg.textContent = "";
   loadH2C().then(function(){ card = buildShareCard(); document.body.appendChild(card); return (document.fonts && document.fonts.ready) ? document.fonts.ready : null; })
-  .then(function(){ return window.html2canvas(card, { scale:2, backgroundColor:"#ffffff", useCORS:true, logging:false }); })
+  .then(function(){ return window.html2canvas(card, { scale:3, backgroundColor:"#ffffff", useCORS:true, logging:false }); })
   .then(function(canvas){ card.remove(); return new Promise(function(res){ canvas.toBlob(res, "image/png"); }); })
   .then(function(blob){
     var name = "แผนภาษี-" + (st.cust.name || "ลูกค้า").replace(/[\\/:*?"<>|\s]+/g, "_") + ".png";
@@ -1267,7 +1342,7 @@ $("barGo").addEventListener("click", function(){ goTab(2); });
 $("verBadge").textContent = "v" + APP_VERSION;
 $("foot").textContent = "Tax Plan by Ped เวอร์ชัน " + APP_VERSION + " อัปเดต " + APP_UPDATED + " ใช้อัตราภาษีและสิทธิ์ลดหย่อนปีภาษี 2569";
 showPlanner(); renderTab1(); renderCases(); onData();
-window.__taxplan = { compute:compute, computeAll:computeAll, scenarios:scenarios, st:function(){ return st; } };
+window.__taxplan = { buildShareCard:function(){ return buildShareCard(); }, compute:compute, computeAll:computeAll, scenarios:scenarios, st:function(){ return st; } };
 })();
 </script>
 </body>
