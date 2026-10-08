@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="Tax Plan by Ped">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#14283F">
+<meta name="theme-color" content="#1F6FD1">
 <meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -236,6 +236,7 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 .ledger .cap.hint2{color:var(--muted)}
 .ledger .l2{display:flex;align-items:center;justify-content:center;min-height:40px;margin-top:4px}
 .ledger .l2 .cin{margin-top:0}
+.ledger .l2.sm{min-height:0;margin-top:2px}
 .ledger .l2 .add{display:inline}
 .sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
 @media (max-width:600px){.sumgrid{grid-template-columns:1fr}}
@@ -250,6 +251,60 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 .scard .tx{font-size:21px}
 .warn div+div,.brtip div+div{margin-top:4px}
 .note-lines div{margin:3px 0}
+/* ===== BLA theme (v1.5) ===== */
+:root{ --ink:#1B3A7A; --ink2:#1F6FD1; --bg:#EEF6FD; --line:#D3E3F3; --gold:#B7CC2E; --gold-soft:#EAF3FD; --save:#4A7C0B; --save-soft:#F2F7DC; --tax:#C0392B; --muted:#5B6F8A; }
+.top{background:linear-gradient(120deg,#1F6FD1 0%,#3D95E8 100%)}
+.brand .sub,.planner-btn small{color:#DCEBFB}
+.ver{border-color:#D9E87A;color:#F2F8C4}
+.planner-btn{border-color:rgba(255,255,255,.55)}
+.tab{color:#D6E7FA}
+.tab[aria-selected="true"]{border-bottom-color:#B7CC2E}
+.btn-p{background:#1F4FA0}
+.btn-g{color:#1F4FA0;border-color:#1F4FA0}
+.inp:focus,.sel:focus{border-color:#1F6FD1}
+.chk input,.item-h input[type=checkbox]{accent-color:#1F6FD1}
+.pedit{border-color:#B7CC2E}
+.z-cust{background:#EAF1F8}
+.z-cust .zone-h{background:#1B3A7A}
+.z-inc{background:#E6F2FC}
+.z-inc .zone-h{background:#1F6FD1}
+.z-inc .item,.z-inc .item.on{border-left-color:#1F6FD1}
+.z-inc .item.on{border-color:#1F6FD1}
+.z-ded{background:#F4F8DE}
+.z-ded .zone-h{background:#B7CC2E}
+.z-ded .zone-h h2,.z-ded .zone-h span{color:#1B3A7A}
+.z-ded .item,.z-ded .item.on{border-left-color:#9DB51E}
+.z-ded .item.on{border-color:#9DB51E}
+.z-ded .grp{color:#3E5208}
+.grp .meter.full{color:#4A7C0B}
+.code{background:#E6F2FC;color:#1F4FA0}
+.defbtn{border-color:#BFD6F0;color:#1F4FA0}
+.defbtn[aria-expanded="true"]{background:#1F6FD1;border-color:#1F6FD1}
+.def{background:#EAF3FD;color:#1B3A7A}
+.def b{color:#0F2A5E}
+.def .ex{border-top-color:#C4DCF5}
+.ledger th,.br th{background:#1B3A7A}
+.ledger th.c3,.br th.c3{background:#5C7A0A}
+.ledger td.c3,.br td.c3{background:#F6F9E6}
+.ledger tr.h.inc td{background:#1F6FD1}
+.ledger tr.h.ded td{background:#B7CC2E;color:#1B3A7A}
+.ledger tr.h.res td{background:#1B3A7A}
+.ledger tr.sh td{background:#EEF4D2;color:#3E5208;border-bottom-color:#DCE7B0}
+.ledger tr.meter td{background:#F7FAFE}
+.ledger tr.t td{background:#F1F6FC}
+.ledger tr.save td{background:#F2F7DC;color:#3E6A08}
+.ledger tr.dim td{opacity:.42}
+.ledger .add{color:#4A7C0B}
+.ledger .cin{border-color:#B7CC2E}
+.badge{background:#B7CC2E!important;color:#1B3A7A!important}
+.scard.f{border-top-color:#1F6FD1}
+.scard.c{border-top-color:#B7CC2E;background:#F6F9E6}
+.roi .blk.c{background:#F6F9E6;border-color:#DCE7B0}
+.br tr.cur td{background:#F1F6C8}
+.brtip,.rec{background:#EAF3FD;color:#1B3A7A}
+.brtoggle button{border-color:#1F4FA0;color:#1F4FA0}
+.brtoggle button[aria-pressed="true"]{background:#1F4FA0;color:#fff}
+.cin-s{border-color:#B7CC2E;color:#4A7C0B}
 </style>
 </head>
 <body>
@@ -335,10 +390,11 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
     <div class="hint" id="shareMsg" role="status" style="margin:-4px 2px 10px"></div>
     <div class="ledger-wrap" id="ledgerWrap"><table class="ledger" id="ledger"></table></div>
     <div class="note note-lines no-share">
-      <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนที่ซื้อเพิ่มได้ จนเต็มสิทธิ์ตามรายได้ของลูกค้า</div>
+      <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนที่ซื้อเพิ่มได้ จนเต็มเพดานของลูกค้า (คิดจาก % ของรายได้และวงเงินกลุ่ม)</div>
       <div>• ลำดับการเติม: ประกันชีวิต/สุขภาพ → บำนาญ → RMF → กอช. → Thai ESG</div>
       <div>• ตัวเลขสีเขียว (+) คือยอดที่ซื้อเพิ่มได้อีก</div>
-      <div>• คอลัมน์ตามใจลูกค้า ใส่ยอดที่จะซื้อเพิ่มในช่องว่าง ช่องจะบอกว่าซื้อได้อีกเท่าไร</div>
+      <div>• คอลัมน์ตามใจลูกค้า ใส่ยอดที่จะซื้อเพิ่มในช่องว่าง ใต้ช่องมียอดแนะนำ ตรงกับคอลัมน์ใช้สิทธิ์เต็ม</div>
+      <div>• กลุ่มเกษียณเกิน 500,000 ระบบลดตัวอื่นให้อัตโนมัติ ลด RMF ก่อน → กอช. → บำนาญ (เก็บประกันไว้ท้ายสุด)</div>
       <div>• PVD กองทุนครู และประกันสังคม หักจากเงินเดือนแล้ว จึงไม่มีช่องให้เพิ่ม</div>
     </div>
 
@@ -365,7 +421,7 @@ table.ledger,table.br{width:100%;border-collapse:collapse}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "1.4.0";
+var APP_VERSION = "1.5.0";
 var APP_UPDATED = "8 ต.ค. 2569";
 
 function num(v){ var n = parseFloat(String(v == null ? "" : v).replace(/,/g,"")); return isNaN(n) || n < 0 ? 0 : n; }
@@ -721,7 +777,7 @@ function compute(v, d, gU){
     wht:wht, payable:taxAfterCredit - wht, annToLife:annToLife, nsfOk:nsfOk,
     caps:{ annuity:capAnn, rmf:capRmf, pvd:capPvd, teacher:capTeach, esg:capEsg },
     groups:{ life:{ used:U.health + U.life + annToLife, max:100000 },
-      retire:{ used:annGrp + U.pvd + U.rmf + U.nsf + U.teacher, max:retMax },
+      retire:{ used:annGrp + U.pvd + U.rmf + U.nsf + U.teacher, max:retMax, raw:grp },
       esg:{ used:U.tesg + U.tesgx, max:capEsg } } };
 }
 function computeAll(v, d){
@@ -800,12 +856,62 @@ function shownMoney(dB, rB){
     return false;
   });
 }
+function buyEligible(k, s){
+  if (k === "nsf") return !lockMsg("nsf") && s.rB.nsfOk;
+  if (k === "spouseLife") return !!st.sel.spouse;
+  if (k === "parentHealth") return parentHealthEligible(s.dB);
+  return true;
+}
+/* สถานการณ์ที่ใส่ยอดวางแผนทุกตัว ยกเว้นตัว k */
+function othersScenario(k, s){
+  var dX = Object.assign({}, s.dB);
+  Object.keys(BUY).forEach(function(x){ if (x !== k && buyEligible(x, s)) dX[x] = num(s.dB[x]) + num(st.custom[x]); });
+  return { dX:dX, rX:computeAll(s.v, dX) };
+}
+/* ยอดสูงสุดที่ลูกค้าใส่ได้ในแถวนี้ (กลุ่มเกษียณจะลดตัวอื่นแทน) */
+function ownMax(k, s){
+  if (!BUY[k] || !buyEligible(k, s)) return 0;
+  var o = othersScenario(k, s), r = o.rX, U = r.U, G = r.groups, base = num(s.dB[k]), x = 0;
+  if (k === "life") x = 100000 - U.health - U.life;
+  else if (k === "health") x = Math.min(25000 - U.health, 100000 - U.health - U.life);
+  else if (k === "annuity") x = Math.max(0, r.caps.annuity - Math.min(Math.max(0, base - Math.max(0, 100000 - U.health - U.life)), r.caps.annuity)) + Math.max(0, 100000 - U.health - U.life - Math.min(base, Math.max(0, 100000 - U.health - U.life)));
+  else if (k === "rmf") x = r.caps.rmf - Math.min(base, r.caps.rmf);
+  else if (k === "nsf") x = r.nsfOk ? 30000 - Math.min(base, 30000) : 0;
+  else if (k === "tesg" || k === "tesgx") x = G.esg.max - G.esg.used;
+  else if (k === "spouseLife") x = 10000 - U.spouseLife;
+  else if (k === "parentHealth") x = 15000 - U.parentHealth;
+  return Math.max(0, Math.floor(x));
+}
+/* ยอดแนะนำ ตามลำดับเดียวกับคอลัมน์ใช้สิทธิ์เต็ม */
+function hintFor(k, s){
+  if (!BUY[k] || !buyEligible(k, s)) return 0;
+  var o = othersScenario(k, s), f = fullD(o.dX, o.rX);
+  var kk = k === "tesgx" ? "tesg" : k;
+  return Math.max(0, Math.round(num(f[kk]) - num(o.dX[kk])));
+}
+function lifeRoomFor(k, s){ var o = othersScenario(k, s); return Math.max(0, Math.floor(100000 - o.rX.groups.life.used)); }
+var ADJ = {};
+function normalizeCustom(k){
+  ADJ = {};
+  var s = scenarios(), om = ownMax(k, s);
+  if (num(st.custom[k]) > om){ st.custom[k] = om > 0 ? String(om) : ""; ADJ[k] = "clamp"; }
+  if (["annuity","rmf","nsf"].indexOf(k) < 0) return;
+  for (var guard = 0; guard < 20; guard++){
+    s = scenarios();
+    var over = s.rC.groups.retire.raw - 500000;
+    if (over <= 0.5) break;
+    var order = ["rmf","nsf","annuity"].filter(function(x){ return x !== k && num(st.custom[x]) > 0; });
+    if (order.length){ var x = order[0], red = Math.min(num(st.custom[x]), Math.ceil(over)); st.custom[x] = String(num(st.custom[x]) - red); if (num(st.custom[x]) <= 0) st.custom[x] = ""; ADJ[x] = "reduced"; }
+    else { st.custom[k] = String(Math.max(0, num(st.custom[k]) - Math.ceil(over))); ADJ[k] = "group"; }
+  }
+}
 function scenarios(){
   var v = effV(), dB = effD(), rB = computeAll(v, dB);
   var dF = fullD(dB, rB), rF = computeAll(v, dF);
   var shown = shownMoney(dB, rB);
   var dC = Object.assign({}, dB);
-  shown.forEach(function(m){ var mx = maxAdd(m.k, rB); if (mx > 0) dC[m.k] = num(dB[m.k]) + Math.min(num(st.custom[m.k]), mx); });
+  var s0 = { v:v, dB:dB, rB:rB };
+  Object.keys(BUY).forEach(function(k){ if (buyEligible(k, s0)) dC[k] = num(dB[k]) + num(st.custom[k]); });
   var rC = computeAll(v, dC);
   return { v:v, dB:dB, dF:dF, dC:dC, rB:rB, rF:rF, rC:rC, shown:shown };
 }
@@ -1037,14 +1143,14 @@ var CELLS = [];
 function renderTab2(){
   var tbl = $("ledger"); tbl.innerHTML = ""; CELLS = [];
   tbl.appendChild(el("thead", null, el("tr", null, el("th", { scope:"col" }, "รายการ"), el("th", { scope:"col" }, "ปัจจุบัน"),
-    el("th", { scope:"col" }, "ใช้สิทธิ์เต็มตามที่สรรพากรกำหนด"), el("th", { scope:"col", class:"c3" }, "วางแผนตามใจลูกค้า"))));
+    el("th", { scope:"col" }, "ใช้สิทธิ์เต็มตามเพดานของลูกค้า"), el("th", { scope:"col", class:"c3" }, "วางแผนตามใจลูกค้า"))));
   var tb = el("tbody"); tbl.appendChild(tb);
   function head(t, cls){ tb.appendChild(el("tr", { class:cls }, el("td", { colspan:"4" }, t))); }
   function spacer(){ tb.appendChild(el("tr", { class:"sp" }, el("td", { colspan:"4" }))); }
   function row(label, sub, get, opts){
     opts = opts || {};
     var tds = [0,1,2].map(function(i){ return el("td", { class:i === 2 ? "c3" : "" }); });
-    tb.appendChild(el("tr", { class:opts.cls || "" }, el("td", { class:"lbl" }, label, sub ? el("small", null, sub) : null), tds[0], tds[1], tds[2]));
+    tb.appendChild(el("tr", { class:(opts.cls || "") + (opts.dim ? " dim" : "") }, el("td", { class:"lbl" }, label, sub ? el("small", null, sub) : null), tds[0], tds[1], tds[2]));
     CELLS.push({ tds:tds, get:get, opts:opts });
   }
   function meterRow(gk){
@@ -1052,24 +1158,35 @@ function renderTab2(){
     tb.appendChild(el("tr", { class:"meter" }, el("td", null, "ใช้สิทธิ์ไปแล้ว"), tds[0], tds[1], tds[2]));
     CELLS.push({ meter:gk, tds:tds });
   }
-  function editRow(m){
-    var buy = !!BUY[m.k];
+  function editRow(m, S0){
+    var buy = !!BUY[m.k] && buyEligible(m.k, S0);
     var tdB = el("td"), tdF = el("td"), tdC = el("td", { class:"c3" });
-    var bL1 = el("span", { class:"l1" }), bL2 = el("div", { class:"l2" });
-    var fL1 = el("span", { class:"l1" }), fL2 = el("div", { class:"l2" });
-    var cL1 = el("span", { class:"l1" }), cL2 = el("div", { class:"l2" });
-    tdB.appendChild(bL1); tdB.appendChild(bL2); tdF.appendChild(fL1); tdF.appendChild(fL2); tdC.appendChild(cL1); tdC.appendChild(cL2);
-    var inp = null, cap = el("span", { class:"cap" });
+    var l2c = buy ? "l2" : "l2 sm";
+    var bL1 = el("span", { class:"l1" }), bL2 = el("div", { class:l2c });
+    var fL1 = el("span", { class:"l1" }), fL2 = el("div", { class:l2c }), fL3 = el("span", { class:"full-note" });
+    var cL1 = el("span", { class:"l1" }), cL2 = el("div", { class:l2c });
+    tdB.appendChild(bL1); tdB.appendChild(bL2); tdF.appendChild(fL1); tdF.appendChild(fL2); tdF.appendChild(fL3); tdC.appendChild(cL1); tdC.appendChild(cL2);
+    var inp = null, cap = el("span", { class:"cap" }), cap2 = el("span", { class:"cap hint2" });
     if (buy){
-      inp = el("input", { class:"cin", inputmode:"numeric", "aria-label":"เพิ่ม " + m.title });
+      inp = el("input", { class:"cin", inputmode:"numeric", placeholder:"+ เพิ่ม", "aria-label":"เพิ่ม " + m.title });
       tapClear(inp);
-      inp.addEventListener("input", function(){ var d = digits(this.value); st.custom[m.k] = d; this.value = withCommas(d); try { this.setSelectionRange(this.value.length, this.value.length); } catch(e){} updateTab2(); });
+      inp.addEventListener("input", function(){
+        st.custom[m.k] = digits(this.value); normalizeCustom(m.k);
+        this.value = withCommas(st.custom[m.k] || "");
+        try { this.setSelectionRange(this.value.length, this.value.length); } catch(e){}
+        updateTab2();
+      });
       cL2.appendChild(inp);
     }
-    tdC.appendChild(cap);
+    tdC.appendChild(cap); tdC.appendChild(cap2);
+    var why = "";
+    if (lockMsg(m.id)) why = "ใช้สิทธิ์ไม่ได้";
+    else if (m.k === "pvd" || m.k === "teacher" || m.k === "social") why = active(m.id) ? "หักจากเงินเดือนแล้ว เพิ่มย้อนหลังไม่ได้" : "";
+    else if (m.k === "spouseLife" && !st.sel.spouse) why = "ต้องมีคู่สมรสไม่มีเงินได้";
     var note = el("small");
-    tb.appendChild(el("tr", null, el("td", { class:"lbl" }, m.title, buy ? null : el("small", null, m.k === "pvd" || m.k === "teacher" || m.k === "social" ? "หักจากเงินเดือนแล้ว เพิ่มย้อนหลังไม่ได้" : "ไม่ใช่รายการที่ซื้อเพิ่มได้"), note), tdB, tdF, tdC));
-    CELLS.push({ edit:m, buy:buy, bL1:bL1, bL2:bL2, fL1:fL1, fL2:fL2, cL1:cL1, cL2:cL2, inp:inp, cap:cap, note:note });
+    var dim = !buy && !active(m.id);
+    tb.appendChild(el("tr", { class:dim ? "dim" : "" }, el("td", { class:"lbl" }, m.title, why ? el("small", null, why) : null, note), tdB, tdF, tdC));
+    CELLS.push({ edit:m, buy:buy, bL1:bL1, bL2:bL2, fL1:fL1, fL2:fL2, fL3:fL3, cL1:cL1, cL2:cL2, inp:inp, cap:cap, cap2:cap2, note:note });
   }
   var S0 = scenarios();
   head("รายได้ (เงินได้พึงประเมิน)", "h inc");
@@ -1093,25 +1210,25 @@ function renderTab2(){
   spacer();
   head("ค่าลดหย่อน", "h ded");
   row("ส่วนตัว", null, function(r){ return r.U.personal; });
-  if (active("spouse")) row("คู่สมรสไม่มีเงินได้", null, function(r){ return r.U.spouse; });
-  if (active("children")) row("บุตร", null, function(r){ return r.U.children; });
-  if (active("parents")) row("อุปการะบิดามารดา", null, function(r){ return r.U.parents; });
-  if (active("disabledDep")) row("อุปการะคนพิการ/ทุพพลภาพ", null, function(r){ return r.U.disabledDep; });
+  head(GROUPS.family, "sh");
+  row("คู่สมรสไม่มีเงินได้", null, function(r){ return r.U.spouse; }, { dim:!active("spouse") });
+  row("บุตร", null, function(r){ return r.U.children; }, { dim:!active("children") });
+  row("อุปการะบิดามารดา", null, function(r){ return r.U.parents; }, { dim:!active("parents") });
+  row("อุปการะคนพิการ/ทุพพลภาพ", null, function(r){ return r.U.disabledDep; }, { dim:!active("disabledDep") });
   ["life","ins2","retire","esg","other"].forEach(function(g){
-    var items = S0.shown.filter(function(m){ return m.g === g; }); if (!items.length) return;
-    head(GROUPS[g], "sh"); items.forEach(editRow);
+    var items = DED_MONEY.filter(function(m){ return m.g === g; }); if (!items.length) return;
+    head(GROUPS[g], "sh"); items.forEach(function(m){ editRow(m, S0); });
     if (GMETER[g]) meterRow(g);
   });
   row("รวมค่าลดหย่อน (ก่อนเงินบริจาค)", null, function(r){ return r.preDon; }, { cls:"t" });
   row("เงินได้หลังหักค่าลดหย่อน", "ใช้เป็นฐานคำนวณเงินบริจาค", function(r){ return r.beforeDon; }, { cls:"t" });
-  if (active("donDouble") || active("donGeneral")){
-    spacer();
-    head("เงินบริจาค", "h ded");
-    head("ลำดับ: บริจาค 2 เท่าก่อน (ไม่เกิน 10% ของฐาน) แล้วจึงบริจาคทั่วไป (ไม่เกิน 10% ของฐานที่เหลือ)", "sh");
-    if (active("donDouble")) row("บริจาคเพื่อการศึกษา กีฬา รพ.รัฐ (2 เท่า)", "จ่ายจริง " + fmt(num(st.d.donDouble)) + " บาท", function(r){ return r.U.donDouble; }, { minus:true });
-    if (active("donGeneral")) row("บริจาคทั่วไป", "จ่ายจริง " + fmt(num(st.d.donGeneral)) + " บาท", function(r){ return r.U.donGeneral; }, { minus:true });
-  }
   spacer();
+  head("เงินบริจาค", "h ded");
+  head("ลำดับ: บริจาค 2 เท่าก่อน (ไม่เกิน 10% ของฐาน) แล้วจึงบริจาคทั่วไป (ไม่เกิน 10% ของฐานที่เหลือ)", "sh");
+  row("บริจาคเพื่อการศึกษา กีฬา รพ.รัฐ (2 เท่า)", active("donDouble") ? "จ่ายจริง " + fmt(num(st.d.donDouble)) + " บาท" : null, function(r){ return r.U.donDouble; }, { minus:true, dim:!active("donDouble") });
+  row("บริจาคทั่วไป", active("donGeneral") ? "จ่ายจริง " + fmt(num(st.d.donGeneral)) + " บาท" : null, function(r){ return r.U.donGeneral; }, { minus:true, dim:!active("donGeneral") });
+  spacer();
+
   head("ผลการคำนวณภาษี", "h res");
   row("รวมค่าลดหย่อนทั้งหมด", null, function(r){ return r.totalDed; });
   row("เงินได้สุทธิ", null, function(r){ return r.net; }, { cls:"t" });
@@ -1139,23 +1256,31 @@ function updateTab2(initial){
   var s = scenarios(), cols = [["B", s.rB], ["F", s.rF], ["C", s.rC]];
   CELLS.forEach(function(c){
     if (c.edit){
-      var k = c.edit.k, uB = s.rB.U[k], uF = s.rF.U[k], uC = s.rC.U[k], mx = c.buy ? maxAdd(k, s.rB) : 0;
+      var k = c.edit.k, uB = s.rB.U[k], uF = s.rF.U[k], uC = s.rC.U[k];
       c.bL1.textContent = fmt(uB); c.bL2.innerHTML = "";
       if (isFull(k, s.rB)) c.bL2.appendChild(el("span", { class:"badge" }, "✓ ใช้สิทธิ์เต็ม"));
-      c.fL1.textContent = fmt(uB); c.fL2.innerHTML = "";
+      c.fL1.textContent = fmt(uB); c.fL2.innerHTML = ""; c.fL3.textContent = "";
       if (uF - uB > 0.5) c.fL2.appendChild(el("span", { class:"add" }, "+" + fmt(uF - uB)));
+      if (k === "annuity" && c.buy){
+        var lr = Math.max(0, Math.floor(100000 - s.rB.groups.life.used));
+        if (lr > 0) c.fL3.textContent = "หรือซื้อบำนาญแทนส่วนประกันชีวิตได้อีก " + fmt(lr);
+      }
       c.cL1.textContent = fmt(uB);
-      c.cap.className = "cap"; c.cap.textContent = "";
+      c.cap.className = "cap"; c.cap.textContent = ""; c.cap2.textContent = "";
       if (c.inp){
-        c.inp.style.display = mx > 0 ? "" : "none";
-        c.inp.placeholder = "+ เพิ่ม";
-        if (mx <= 0) st.custom[k] = "";
+        var mx = ownMax(k, s);
+        c.inp.style.display = mx > 0 || num(st.custom[k]) > 0 ? "" : "none";
         if (initial || document.activeElement !== c.inp) c.inp.value = withCommas(st.custom[k] || "");
         var add = num(st.custom[k]);
-        if (add <= 0 && mx > 0){ c.cap.textContent = "ซื้อได้อีก " + fmt(mx); c.cap.className = "cap hint2"; }
-        else if (add > mx) c.cap.textContent = "ซื้อเพิ่มได้สูงสุด " + fmt(mx);
-        else if (add > 0){
-          if (uC < uB + add - 0.5) c.cap.textContent = "ชนเพดานกลุ่ม ใช้ได้รวม " + fmt(uC);
+        if (add <= 0){
+          var h = hintFor(k, s);
+          if (h > 0){ c.cap.textContent = "แนะนำ +" + fmt(h); c.cap.className = "cap hint2"; }
+          else if (mx > 0){ c.cap.textContent = "ใส่ได้อีก " + fmt(mx); c.cap.className = "cap hint2"; }
+          if (k === "annuity"){ var lr2 = lifeRoomFor(k, s); if (lr2 > 0 && mx > h) c.cap2.textContent = "ถ้าไม่ซื้อประกันชีวิตเพิ่ม ใส่ได้อีก " + fmt(lr2); }
+        } else {
+          if (ADJ[k] === "reduced") c.cap.textContent = "ลดลงอัตโนมัติ ไม่ให้กลุ่มเกษียณเกิน 500,000";
+          else if (ADJ[k] === "clamp") c.cap.textContent = "ใส่ได้สูงสุด " + fmt(mx);
+          else if (ADJ[k] === "group") c.cap.textContent = "กลุ่มเกษียณเต็ม 500,000 แล้ว";
           else { c.cap.textContent = "รวม " + fmt(uC); c.cap.className = "cap ok"; }
         }
       }
@@ -1198,7 +1323,7 @@ function renderSummary(s){
   }
   box.appendChild(el("div", { class:"sumgrid" },
     card("b", "ก่อนวางแผน", [["ภาษีที่ต้องเสีย", fmt(b), "tx"], ["ฐานภาษีขั้นสูงสุด", s.rB.rate + "%"], ["เงินได้สุทธิ", fmt(s.rB.net)]]),
-    card("f", "ใช้สิทธิ์เต็มตามสรรพากรกำหนด", planLines(f, exF)),
+    card("f", "ใช้สิทธิ์เต็มตามเพดานของลูกค้า", planLines(f, exF)),
     card("c", "ตามใจลูกค้า", planLines(c, exC))));
   if (s.rF.net < 150000 && exF > 0)
     box.appendChild(el("div", { class:"warn" },
@@ -1270,10 +1395,11 @@ function renderBrackets(s){
     tip.appendChild(el("div", null, "ประหยัดภาษีได้ " + fmt(inTop * BR[ti][1] / 100) + " บาท"));
   }
 }
-$("cFromBefore").addEventListener("click", function(){ st.custom = {}; updateTab2(true); });
+$("cFromBefore").addEventListener("click", function(){ st.custom = {}; ADJ = {}; updateTab2(true); });
 $("cFromFull").addEventListener("click", function(){
   var s = scenarios();
-  s.shown.forEach(function(m){ var a = Math.round(num(s.dF[m.k]) - num(s.dB[m.k])); st.custom[m.k] = a > 0 && BUY[m.k] && canAdd(m.k, s.rB) ? String(a) : ""; });
+  ADJ = {}; st.custom = {};
+  Object.keys(BUY).forEach(function(k){ var a = Math.round(num(s.dF[k]) - num(s.dB[k])); if (a > 0 && buyEligible(k, s)) st.custom[k] = String(a); });
   updateTab2(true);
 });
 
