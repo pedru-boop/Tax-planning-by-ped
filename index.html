@@ -360,6 +360,9 @@ label.f{font-size:17px;font-weight:700}
 .notes-box summary{cursor:pointer;font-weight:700;color:#1F4FA0;list-style:revert}
 .notes-box[open] summary{margin-bottom:6px}
 .badge{font-size:12.5px}
+/* ===== v2.3 ===== */
+.thsub{display:block;font-size:11.5px;font-weight:500;opacity:.85;margin-top:2px}
+.br.gu td{font-size:16px}
 /* ===== v2.1 ===== */
 .share-card .shead2{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
 .share-card .sbrand{display:flex;gap:14px;align-items:center;padding:14px;background:linear-gradient(120deg,#1F6FD1 0%,#3D95E8 100%);color:#fff}
@@ -486,6 +489,7 @@ label.f{font-size:17px;font-weight:700}
     </div>
     <div class="hint" id="shareMsg" role="status" style="margin:-4px 2px 10px"></div>
     <div class="ledger-wrap" id="ledgerWrap"><table class="ledger" id="ledger"></table></div>
+    <details class="notes-box no-share" id="guBox" style="display:none"><summary>ดูการคำนวณภาษีที่นายจ้างออกให้</summary><div id="guBody"></div></details>
     <details class="note note-lines no-share notes-box"><summary>รายละเอียด</summary>
       <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนที่ซื้อเพิ่มได้ จนเต็มเพดานของลูกค้า (คิดจาก % ของรายได้และวงเงินกลุ่ม)</div>
       <div>• ลำดับการเติม: ประกันชีวิต/สุขภาพ → บำนาญ → RMF → กอช. → Thai ESG</div>
@@ -519,7 +523,7 @@ label.f{font-size:17px;font-weight:700}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "2.2.0";
+var APP_VERSION = "2.3.1";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "8 ต.ค. 2569";
 
@@ -567,20 +571,20 @@ var INCOME_ITEMS = [
   { id:"i1", code:"40(1)", title:"เงินเดือน ค่าจ้าง โบนัส",
     def:D(["เงินได้จาก<b>การเป็นลูกจ้าง</b> มีนายจ้าง ทำงานตามคำสั่ง",
       "รวม เงินเดือน ค่าจ้าง โบนัส เบี้ยเลี้ยง ค่าล่วงเวลา บำเหน็จบำนาญ ค่าเช่าบ้านที่นายจ้างจ่าย เงินที่นายจ้างจ่ายหนี้แทน",
-      "ภาษีที่นายจ้างออกแทนให้ก็นับเป็นเงินได้ 40(1) เพิ่ม (ภาษีถูกทอด)",
+      "ภาษีที่นายจ้างออกแทนให้ก็นับเป็นเงินได้ 40(1) เพิ่ม (ภาษีทุกทอด)",
       "หักค่าใช้จ่ายเหมา <b>50%</b> รวมกับ 40(2) แล้ว<b>ไม่เกิน 100,000 บาท</b>"],
       "ตัวอย่าง: พนักงานบริษัท ข้าราชการ ลูกจ้างรายวัน พนักงานพาร์ทไทม์ที่มีนายจ้าง ผู้รับบำนาญ"),
     fields:[ M("salary","เงินได้ทั้งปี (บาท)"), M("whtSalary","ภาษีที่ถูกหัก ณ ที่จ่ายทั้งปี"),
-      S("empTaxMode","ใครรับภาระภาษีเงินได้นี้",[["none","ลูกจ้างเสียภาษีเอง (ปกติ)"],["once","นายจ้างออกภาษีให้ครั้งเดียว"],["every","นายจ้างออกภาษีให้ทุกทอด (ภาษีถูกทอด)"]]) ] },
+      S("empTaxMode","ใครรับภาระภาษีเงินได้นี้",[["none","ลูกจ้างเสียภาษีเอง (ปกติ)"],["once","นายจ้างออกภาษีให้ครั้งเดียว"],["every","นายจ้างออกภาษีให้ทุกทอด (ภาษีทุกทอด)"]]) ] },
   { id:"i1b", code:"40(1)", title:"ผลประโยชน์อื่นที่นายจ้างออกให้",
     def:D(["ประโยชน์เพิ่มที่นายจ้างให้นอกจากเงินเดือน ถือเป็นเงินได้ 40(1) ต้อง<b>คิดเป็นมูลค่าเงิน</b>แล้วรวมเป็นเงินได้",
       "เช่น ค่าเช่าบ้านที่นายจ้างจ่ายแทน บ้านพักที่นายจ้างให้อยู่ฟรี เบี้ยประกันที่นายจ้างจ่ายให้ลูกจ้าง (ที่ไม่ได้รับยกเว้น) ค่าเล่าเรียนบุตร รถประจำตำแหน่งที่ใช้ส่วนตัว หุ้นหรือสิทธิซื้อหุ้น (ESOP) ที่ได้ในราคาต่ำกว่าตลาด เงินที่นายจ้างจ่ายหนี้แทน",
       "รวมกับเงินเดือนและ 40(2) หักค่าใช้จ่ายเหมา 50% ไม่เกิน 100,000",
-      "<b>ใครรับภาระภาษี</b>: ลูกจ้างเสียเอง / นายจ้างออกให้ครั้งเดียว (ภาษีที่ออกให้นับเป็นเงินได้อีก 1 รอบ ส่วนที่เพิ่มลูกจ้างจ่ายเอง) / นายจ้างออกให้ทุกทอด (ภาษีถูกทอด ทบจนลงตัว นายจ้างรับภาระทั้งหมด)",
+      "<b>ใครรับภาระภาษี</b>: ลูกจ้างเสียเอง / นายจ้างออกให้ครั้งเดียว (ภาษีที่ออกให้นับเป็นเงินได้อีก 1 รอบ ส่วนที่เพิ่มลูกจ้างจ่ายเอง) / นายจ้างออกให้ทุกทอด (ภาษีทุกทอด ทบจนลงตัว นายจ้างรับภาระทั้งหมด)",
       "ภาษีที่นายจ้างรับภาระ คิดเฉพาะส่วนที่เกิดจากผลประโยชน์นี้"],
       "ตัวอย่าง: ผู้บริหารที่บริษัทจ่ายค่าเช่าคอนโดให้เดือนละ 30,000 = เงินได้ 360,000 บาทต่อปี"),
     fields:[ M("benefit","มูลค่าผลประโยชน์ทั้งปี (บาท)"),
-      S("benTaxMode","ใครรับภาระภาษีของผลประโยชน์นี้",[["none","ลูกจ้างเสียภาษีเอง (ปกติ)"],["once","นายจ้างออกภาษีให้ครั้งเดียว"],["every","นายจ้างออกภาษีให้ทุกทอด (ภาษีถูกทอด)"]]) ] },
+      S("benTaxMode","ใครรับภาระภาษีของผลประโยชน์นี้",[["none","ลูกจ้างเสียภาษีเอง (ปกติ)"],["once","นายจ้างออกภาษีให้ครั้งเดียว"],["every","นายจ้างออกภาษีให้ทุกทอด (ภาษีทุกทอด)"]]) ] },
   { id:"i2", code:"40(2)", title:"ค่านายหน้า ค่าคอมมิชชั่น รับจ้างอิสระ",
     def:D(["เงินได้จาก<b>หน้าที่ ตำแหน่ง หรืองานที่รับทำให้</b> โดย<b>ไม่ได้เป็นลูกจ้าง</b> และไม่ได้ลงทุนทำเป็นกิจการ",
       "เช่น ค่านายหน้า ค่าคอมมิชชั่น ค่าธรรมเนียม เบี้ยประชุม ค่ารับจ้างทำงาน",
@@ -739,7 +743,7 @@ var DED_ITEMS = [
 
   { g:"retire", id:"annuity", title:"ประกันชีวิตแบบบำนาญ", plan:true,
     def:D(["<b>15% ของเงินได้พึงประเมิน ไม่เกิน 200,000 บาท</b> และรวมกลุ่มเกษียณแล้วไม่เกิน 500,000",
-      "<b>เทคนิคสำคัญ</b>: ถ้าใช้สิทธิ์ประกันชีวิตไม่เต็ม 100,000 เบี้ยบำนาญจะไปใช้ในวงเงินประกันชีวิตก่อน ส่วนที่เหลือจึงใช้วงเงินบำนาญ 200,000 รวมได้สูงสุด 300,000",
+      "<b>เทคนิคสำคัญ</b>: เบี้ยบำนาญใช้วงเงินบำนาญ (15% ไม่เกิน 200,000) ก่อน ถ้าซื้อเกินวงเงินบำนาญ และประกันชีวิตยังใช้ไม่เต็ม 100,000 ส่วนที่เกินนำไปใช้วงเงินประกันชีวิตได้ รวมสูงสุด 300,000",
       "กรมธรรม์คุ้มครอง 10 ปีขึ้นไป จ่ายเบี้ยครบก่อนรับบำนาญ เริ่มรับบำนาญอายุ 55 ปีขึ้นไปถึง 85 ปีหรือกว่านั้น",
       "เวนคืนหรือผิดเงื่อนไข ต้องเสียภาษีย้อนหลังพร้อมเงินเพิ่ม"]),
     fields:[ M("annuity","เบี้ยที่จ่ายทั้งปี (บาท)") ] },
@@ -876,17 +880,17 @@ function compute(v, d, gU){
   U.social = Math.min(num(d.social), 10500);
   U.health = Math.min(num(d.health), 25000);
   U.life = Math.min(num(d.life), 100000 - U.health);
-  var annToLife = Math.min(num(d.annuity), 100000 - U.health - U.life);
-  var annRest = num(d.annuity) - annToLife;
   U.spouseLife = d.spouse ? Math.min(num(d.spouseLife), 10000) : 0;
   U.parentHealth = Math.min(num(d.parentHealth), 15000);
   var wage = salary + ben + gU;
   var capAnn = Math.min(taxable * .15, 200000), capPvd = Math.min(wage * (d.pvdType === "gpf" ? .30 : .15), 500000), capRmf = Math.min(taxable * .3, 500000), capTeach = Math.min(wage * .15, 500000);
   var nsfOk = !d.noNsf && !d.ssoBlocksNsf && !(num(d.pvd) > 0 || num(d.teacher) > 0);
-  var own = { annuity:Math.min(annRest, capAnn), pvd:Math.min(num(d.pvd), capPvd), rmf:Math.min(num(d.rmf), capRmf),
+  var own = { annuity:Math.min(num(d.annuity), capAnn), pvd:Math.min(num(d.pvd), capPvd), rmf:Math.min(num(d.rmf), capRmf),
               nsf:nsfOk ? Math.min(num(d.nsf), 30000) : 0, teacher:Math.min(num(d.teacher), capTeach) };
   var grp = own.annuity + own.pvd + own.rmf + own.nsf + own.teacher, sc = grp > 500000 ? 500000 / grp : 1;
   var annGrp = own.annuity * sc;
+  /* บำนาญใช้วงเงินบำนาญก่อน ส่วนที่เกินจึงไปใช้วงเงินประกันชีวิตที่ยังว่าง */
+  var annToLife = Math.max(0, Math.min(num(d.annuity) - annGrp, 100000 - U.health - U.life));
   U.annuity = annToLife + annGrp;
   U.pvd = own.pvd * sc; U.rmf = own.rmf * sc; U.nsf = own.nsf * sc; U.teacher = own.teacher * sc;
   var capEsg = Math.min(taxable * .3, 300000);
@@ -926,16 +930,17 @@ function computeAll(v, d){
   /* นายจ้างออกภาษีเฉพาะส่วนของเงินได้จากนายจ้าง (คิดแบบนายจ้างหักภาษีจากเงินเดือนอย่างเดียว) ภาษีจากเงินได้อื่นลูกจ้างจ่ายเอง */
   var ZERO = { commission:0, royalty:0, interest:0, dividend:0, rent:0, prof:0, con:0, biz:0, gift:0 };
   var vS = Object.assign({}, v, ZERO, { benefit:0 }), vSB = Object.assign({}, v, ZERO);
-  var g1 = 0, g2 = 0;
+  var g1 = 0, g2 = 0, steps = [];
   for (var i = 0; i < 80; i++){
     var tS = compute(vS, d, g1).taxAfterCredit;
     var n1 = on1 ? Math.max(0, tS) : 0;
     var n2 = on2 ? Math.max(0, compute(vSB, d, g1 + g2).taxAfterCredit - tS) : 0;
+    if (i === 0 || m1 === "every" || m2 === "every") steps.push({ inc:(on1 ? num(v.salary) : 0) + (on2 ? num(v.benefit) : 0) + g1 + g2, tax:(i > 0 && m1 === "once" ? g1 : n1) + (i > 0 && m2 === "once" ? g2 : n2) });
     if (i > 0 && m1 === "once") n1 = g1;
     if (i > 0 && m2 === "once") n2 = g2;
     var done = Math.abs(n1 - g1) < 0.005 && Math.abs(n2 - g2) < 0.005; g1 = n1; g2 = n2; if (done) break;
   }
-  var r = compute(v, d, g1 + g2); r.gU1 = g1; r.gU2 = g2; r.empPaid = g1 + g2; r.selfTax = r.taxAfterCredit - r.empPaid; return r;
+  var r = compute(v, d, g1 + g2); r.gU1 = g1; r.gU2 = g2; r.empPaid = g1 + g2; r.steps = steps; r.empModes = [m1, m2]; r.selfTax = r.taxAfterCredit - r.empPaid; return r;
 }
 
 function effV(){
@@ -1036,7 +1041,7 @@ function ownMax(k, s){
   var o = othersScenario(k, s), r = o.rX, U = r.U, G = r.groups, base = num(s.dB[k]), x = 0;
   if (k === "life") x = 100000 - U.health - U.life;
   else if (k === "health") x = Math.min(25000 - U.health, 100000 - U.health - U.life);
-  else if (k === "annuity") x = Math.max(0, r.caps.annuity - Math.min(Math.max(0, base - Math.max(0, 100000 - U.health - U.life)), r.caps.annuity)) + Math.max(0, 100000 - U.health - U.life - Math.min(base, Math.max(0, 100000 - U.health - U.life)));
+  else if (k === "annuity") x = Math.max(0, r.caps.annuity - Math.min(base, r.caps.annuity)) + Math.max(0, 100000 - U.health - U.life - Math.max(0, base - r.caps.annuity));
   else if (k === "rmf") x = r.caps.rmf - Math.min(base, r.caps.rmf);
   else if (k === "nsf") x = r.nsfOk ? 30000 - Math.min(base, 30000) : 0;
   else if (k === "tesg" || k === "tesgx") x = G.esg.max - G.esg.used;
@@ -1440,7 +1445,7 @@ function updateTab2(initial){
       if (isFull(k, s.rB)) c.bL2.appendChild(el("span", { class:"badge" }, "เต็มแล้ว"));
       c.fL1.textContent = fmt(uB); c.fL2.innerHTML = ""; c.fL3.textContent = "";
       if (uF - uB > 0.5) c.fL2.appendChild(el("span", { class:"add" }, "+" + fmt(uF - uB)));
-      c.cL1.textContent = fmt(uC); c.cL1.classList.toggle("csum", uC - uB > 0.5);
+      c.cL1.textContent = fmt(uB);
       c.cap.className = "cap"; c.cap.textContent = ""; c.cap2.textContent = "";
       if (c.inp){
         var mx = ownMax(k, s);
@@ -1471,7 +1476,28 @@ function updateTab2(initial){
       if (c.opts.m2){ var R = col[1]; var why = R.nonSal < 120000 ? "เงินได้ไม่ถึง 120,000 ไม่ต้องคิด" : (R.minExempt ? "ไม่เกิน 5,000 ได้รับยกเว้น" : ""); if (why) td.appendChild(el("span", { class:"cap hint2" }, why)); }
     });
   });
-  renderSummary(s); renderRoi(s); renderBrackets(s);
+  renderSummary(s); renderRoi(s); renderBrackets(s); renderGU(s);
+}
+function renderGU(s){
+  var r = s.rB, box = $("guBox"), body = $("guBody");
+  if (!(r.empPaid > 0.5) || !r.steps){ box.style.display = "none"; return; }
+  box.style.display = ""; body.innerHTML = "";
+  var every = r.empModes.indexOf("every") >= 0;
+  var rows = [], prev = null;
+  r.steps.forEach(function(x){ if (prev === null || Math.abs(x.tax - prev) >= 1) rows.push(x); prev = x.tax; });
+  var last = rows[rows.length - 1]; if (last) last.tax = r.empPaid;
+  var t = el("table", { class:"br gu" }), tb = el("tbody");
+  t.appendChild(el("thead", null, el("tr", null, el("th", null, "รอบ"), el("th", null, "เงินได้จากนายจ้าง (รวมภาษีที่ออกให้)"), el("th", null, "ภาษีที่นายจ้างออกให้"))));
+  t.appendChild(tb);
+  var show = rows.length > 12 ? rows.slice(0, 10).concat([null], rows.slice(-1)) : rows;
+  show.forEach(function(x, i){
+    if (!x){ tb.appendChild(el("tr", null, el("td", null, "…"), el("td", null, "…"), el("td", null, "…"))); return; }
+    var n = x === rows[rows.length - 1] ? rows.length : i + 1;
+    tb.appendChild(el("tr", null, el("td", null, String(n)), el("td", null, fmt(x.inc)), el("td", null, fmt(x.tax))));
+  });
+  body.appendChild(el("div", { class:"hint", style:"margin:4px 0 8px" }, every ? "นายจ้างออกภาษีให้ทุกทอด: ภาษีที่ออกให้นับเป็นเงินได้เพิ่ม แล้วคิดภาษีใหม่ ทำซ้ำจนภาษีไม่เปลี่ยน" : "นายจ้างออกภาษีให้ครั้งเดียว: ภาษีรอบแรกนับเป็นเงินได้เพิ่ม ภาษีส่วนที่เพิ่มลูกจ้างจ่ายเอง"));
+  body.appendChild(el("div", { class:"br-wrap" }, t));
+  body.appendChild(el("div", { class:"hint", style:"margin-top:8px" }, "ภาษีที่นายจ้างออกให้ทั้งปี " + fmt(r.empPaid) + " บาท · ลูกค้าจ่ายเอง " + fmt(Math.max(0, r.selfTax)) + " บาท"));
 }
 function renderSummary(s){
   var GU = s.rB.empPaid > 0 || s.rF.empPaid > 0 || s.rC.empPaid > 0;
@@ -1611,7 +1637,7 @@ function cloneClean(node){
   var c = node.cloneNode(true);
   c.querySelectorAll("input").forEach(function(i){
     if (i.style.display === "none"){ i.remove(); return; }
-    var sp = el("span", { class:"cin-s" + (i.value ? "" : " ph") }, i.value ? i.value : (i.placeholder || ""));
+    var sp = el("span", { class:"cin-s" + (i.value ? "" : " ph") }, i.value ? "+" + i.value : (i.placeholder || ""));
     i.parentNode.replaceChild(sp, i);
   });
   c.querySelectorAll("[id]").forEach(function(x){ x.removeAttribute("id"); });
