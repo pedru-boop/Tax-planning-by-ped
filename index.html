@@ -506,7 +506,7 @@ table.gu2{border-collapse:collapse;min-width:100%}
     <div class="ledger-wrap" id="ledgerWrap"><table class="ledger" id="ledger"></table></div>
     <details class="notes-box no-share" id="guBox" style="display:none"><summary>ดูการคำนวณภาษีที่นายจ้างออกให้</summary><div id="guBody"></div></details>
     <details class="note note-lines no-share notes-box"><summary>รายละเอียด</summary>
-      <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมเฉพาะประกันและกองทุนที่ซื้อเพิ่มได้ จนเต็มเพดานของลูกค้า (คิดจาก % ของรายได้และวงเงินกลุ่ม)</div>
+      <div>• คอลัมน์ใช้สิทธิ์เต็ม เติมประกันและกองทุนเท่าที่ยังช่วยลดภาษีได้ ไม่เกินเพดานของลูกค้า (คิดจาก % ของรายได้และวงเงินกลุ่ม)</div>
       <div>• ลำดับการเติม: ประกันชีวิต/สุขภาพ → บำนาญ → RMF → กอช. → Thai ESG</div>
       <div>• ตัวเลขสีเขียว (+) คือยอดที่ซื้อเพิ่มได้อีก</div>
       <div>• คอลัมน์ตามใจลูกค้า ใส่ยอดที่จะซื้อเพิ่มในช่องว่าง ใต้ช่องมียอดแนะนำ ตรงกับคอลัมน์ใช้สิทธิ์เต็ม</div>
@@ -538,7 +538,7 @@ table.gu2{border-collapse:collapse;min-width:100%}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "2.5.0";
+var APP_VERSION = "2.6.0";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "8 ต.ค. 2569";
 
@@ -1089,15 +1089,27 @@ function normalizeCustom(k){
     else { st.custom[k] = String(Math.max(0, num(st.custom[k]) - Math.ceil(over))); ADJ[k] = "group"; }
   }
 }
+/* ใช้สิทธิ์เต็ม: เติมตามลำดับเท่าที่ยังลดภาษีได้ ไม่เกินเพดานของลูกค้า */
+function fullPlan(v, dB, rB, cap){
+  var total = extraPay(cap, dB), amt = Math.max(0, rB.net - floorNet(rB));
+  if (amt <= 0.5) return Object.assign({}, dB);
+  var d = allocate(dB, cap, amt);
+  for (var i = 0; i < 8; i++){
+    var r = computeAll(v, d, dB), extra = r.net - floorNet(r);
+    if (extra <= 0.5 || amt >= total - 0.5) break;
+    amt = Math.min(total, amt + extra); d = allocate(dB, cap, amt);
+  }
+  return d;
+}
 function scenarios(){
   var v = effV(), dB = effD(), rB = computeAll(v, dB);
-  var dF = fullD(dB, rB), rF = computeAll(v, dF, dB);
+  var dFcap = fullD(dB, rB), dF = fullPlan(v, dB, rB, dFcap), rF = computeAll(v, dF, dB);
   var shown = shownMoney(dB, rB);
   var dC = Object.assign({}, dB);
   var s0 = { v:v, dB:dB, rB:rB };
   Object.keys(BUY).forEach(function(k){ if (buyEligible(k, s0)) dC[k] = num(dB[k]) + num(st.custom[k]); });
   var rC = computeAll(v, dC, dB);
-  return { v:v, dB:dB, dF:dF, dC:dC, rB:rB, rF:rF, rC:rC, shown:shown };
+  return { v:v, dB:dB, dF:dF, dFcap:dFcap, dC:dC, rB:rB, rF:rF, rC:rC, shown:shown };
 }
 
 /* ===== ผู้วางแผน ===== */
@@ -1207,6 +1219,22 @@ $("cRet").addEventListener("input", function(){ this.value = digits(this.value);
 $("cDis").addEventListener("change", function(){ st.cust.dis = this.checked; onData(); });
 $("cOld").addEventListener("change", function(){ st.cust.old = this.checked; onData(); });
 
+/* เพดานของลูกค้ารายนี้ (คิดจากรายได้และสิทธิ์ที่ใช้ไปแล้ว) */
+function capHint(k, r){
+  if (!(r.gross > 0)) return FIELD_HINT[k] || "";
+  var U = r.U, G = r.groups, ret = function(own){ return Math.max(0, 500000 - (G.retire.used - own)); }, x = null;
+  if (k === "life") x = 100000 - U.health;
+  else if (k === "health") x = Math.min(25000, 100000 - U.life);
+  else if (k === "annuity") x = Math.min(r.caps.annuity, ret(U.annuity - r.annToLife));
+  else if (k === "rmf") x = Math.min(r.caps.rmf, ret(U.rmf));
+  else if (k === "pvd") x = Math.min(r.caps.pvd, ret(U.pvd));
+  else if (k === "teacher") x = Math.min(r.caps.teacher, ret(U.teacher));
+  else if (k === "nsf") x = r.nsfOk ? Math.min(30000, ret(U.nsf)) : 0;
+  else if (k === "tesg") x = r.caps.esg - U.tesgx;
+  else if (k === "tesgx") x = r.caps.esg - U.tesg;
+  if (x === null) return FIELD_HINT[k] || "";
+  return "ลูกค้ารายนี้ใส่ได้สูงสุด " + fmt(Math.max(0, Math.floor(x))) + " บาท";
+}
 function setHint(k, text, bad){ var h = $("h_" + k); if (!h) return; h.textContent = text; h.classList.toggle("bad", !!bad); }
 function onData(){
   /* ล็อกรายการ */
@@ -1229,11 +1257,11 @@ function onData(){
   });
   /* คำเตือนรายช่อง ค่าลดหย่อน */
   DED_MONEY.forEach(function(m){
-    if (!active(m.id)){ setHint(m.k, FIELD_HINT[m.k] || ""); return; }
+    if (!active(m.id)){ setHint(m.k, capHint(m.k, r)); return; }
     var entered = num(d[m.k]), used = r.U[m.k];
     if (m.k === "donDouble"){ entered = entered * 2; }
     if (entered > used + 0.5) setHint(m.k, "⚠ เกินสิทธิ์ ใช้ลดหย่อนได้ " + fmt(used) + " บาท" + (m.k === "annuity" && r.annToLife > 0 ? " (รวมส่วนที่ใช้วงเงินประกันชีวิต)" : ""), true);
-    else setHint(m.k, FIELD_HINT[m.k] || "");
+    else setHint(m.k, capHint(m.k, r));
   });
   var maxP = st.sel.spouse ? 4 : 2, p = num(st.d.parents);
   setHint("parents", p > maxP ? "⚠ ใช้ได้สูงสุด " + maxP + " คน" + (st.sel.spouse ? "" : " (ถ้ามีคู่สมรสไม่มีเงินได้ ใช้ได้ 4 คน)") : "พ่อแม่ตัวเอง 2 คน + พ่อแม่คู่สมรสที่ไม่มีเงินได้ 2 คน", p > maxP);
@@ -1393,7 +1421,7 @@ function renderTab2(){
   if (FAM.length){ head(GROUPS.family, "sh"); FAM.forEach(function(x){ row(x[1], null, function(r){ return r.U[x[0]]; }); }); }
   function showRow(m){
     if (active(m.id)) return true;
-    return !!BUY[m.k] && buyEligible(m.k, S0) && num(S0.dF[m.k]) - num(S0.dB[m.k]) > 0.5;
+    return !!BUY[m.k] && buyEligible(m.k, S0) && num(S0.dFcap[m.k]) - num(S0.dB[m.k]) > 0.5;
   }
   ["life","ins2","retire","esg","other"].forEach(function(g){
     var all = DED_MONEY.filter(function(m){ return m.g === g; });
