@@ -435,7 +435,12 @@ table.gu2{border-collapse:collapse;min-width:100%}
 .drawbar.on+.penhint{display:block}
 .trialrow{display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
 .trialrow label{font-size:15px;font-weight:700;color:#B45F06}
-.trialrow .inp{width:150px;font-size:18px;padding:6px 10px;border-color:#F3D3A8;text-align:right}
+.trialrow .inp{width:200px;font-size:18px;padding:6px 10px;border-color:#F3D3A8;text-align:right}
+.trialrow .inp::placeholder{font-size:15px;color:#A9B4C0;font-weight:500}
+.trialout{margin:4px 0 0 auto;max-width:340px}
+.trialout .tln{padding:5px 2px}
+.trialout .tln span{font-size:16px}
+.trialout .tln b{font-size:22px}
 .trialrow .btn{padding:7px 12px;font-size:15px;background:#E8772E;color:#fff}
 .trialrow .btn:disabled{opacity:.4;cursor:default}
 .tmodal{position:fixed;inset:0;z-index:50;background:rgba(20,40,63,.45);display:none;align-items:center;justify-content:center;padding:16px}
@@ -575,8 +580,8 @@ table.gu2{border-collapse:collapse;min-width:100%}
         <div class="trialrow no-share">
           <label for="trialAmt">ทดลองลดหย่อนเพิ่ม</label>
           <input class="inp money" id="trialAmt" inputmode="numeric" placeholder="บาท">
-          <button type="button" class="btn" id="trialBtn" disabled>ดูภาษี</button>
         </div>
+        <div class="trialout no-share" id="trialOut" style="display:none"></div>
         <div class="brtip" id="brTip"></div>
         <canvas class="no-share" id="brCanvas" aria-hidden="true"></canvas>
       </div>
@@ -589,10 +594,6 @@ table.gu2{border-collapse:collapse;min-width:100%}
   <div class="foot" id="foot"></div>
 </main>
 
-<div class="tmodal" id="trialModal" role="dialog" aria-modal="true" aria-label="ผลทดลองค่าลดหย่อน">
-  <div class="tbox"><div id="trialOut"></div><button type="button" class="btn btn-p" id="trialClose">ปิด</button></div>
-</div>
-
 <div class="bar" id="bar">
   <div class="bar-in">
     <div class="bar-t"><span id="barLbl">ภาษีที่ลูกค้าจ่ายเอง (ประมาณ)</span><b class="num" id="barTax">0</b></div>
@@ -602,7 +603,7 @@ table.gu2{border-collapse:collapse;min-width:100%}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "2.8.1";
+var APP_VERSION = "2.9.0";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "10 ต.ค. 2569";
 
@@ -1710,23 +1711,22 @@ function trialCalc(s){
   var dT = allocate(s.dB, s.dFcap, use), rT = computeAll(s.v, dT, s.dB);
   return { amt:amt, cap:cap, use:use, dT:dT, rT:rT };
 }
-/* ป๊อบอัพเทียบภาษี ปัจจุบัน กับ ใส่ลดหย่อนเพิ่ม */
-function openTrial(){
-  var s = scenarios(), t = trialCalc(s); if (!t) return;
-  var out = $("trialOut"); out.innerHTML = "";
+/* ผลทดลอง: ข้อความจางในช่องบอกยอดสูงสุด และ 2 บรรทัดใต้ช่อง */
+function renderTrial(s){
+  var inp = $("trialAmt"), out = $("trialOut");
+  var cap = extraPay(s.dFcap, s.dB);
+  inp.placeholder = cap > 0.5 ? "สูงสุด " + fmt(cap) : "ใช้สิทธิ์เต็มแล้ว";
+  out.innerHTML = "";
+  var t = trialCalc(s);
+  if (!t){ out.style.display = "none"; return; }
+  out.style.display = "";
   var tax = Math.max(0, t.rT.selfTax), down = Math.max(0, s.rB.selfTax) - tax;
   function ln(a, v, cls){ out.appendChild(el("div", { class:"tln" }, el("span", null, a), el("b", { class:cls || "" }, v))); }
-  ln("ลองใส่ค่าลดหย่อนเพิ่ม", fmt(t.amt) + " บาท");
   ln("ภาษีที่ต้องเสีย", fmt(tax) + " บาท", "owe");
-  ln("ประหยัดได้", fmt(down) + " บาท", "refund");
-  $("trialModal").classList.add("on");
+  ln("ประหยัดภาษีได้", fmt(down) + " บาท", "refund");
 }
-function closeTrial(){ $("trialModal").classList.remove("on"); }
-$("trialClose").addEventListener("click", closeTrial);
-$("trialModal").addEventListener("click", function(e){ if (e.target === this) closeTrial(); });
-document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTrial(); });
-$("trialBtn").addEventListener("click", openTrial);
 function renderBrackets(s){
+  renderTrial(s);
   var tg = $("brToggle"); tg.innerHTML = "";
   [["B","ปัจจุบัน"],["F","ใช้สิทธิ์เต็ม"],["C","ตามใจลูกค้า"]].forEach(function(x){
     tg.appendChild(el("button", { type:"button", "aria-pressed":st.brView === x[0] ? "true" : "false", onclick:function(){ st.brView = x[0]; renderBrackets(scenarios()); } }, x[1]));
@@ -1774,9 +1774,11 @@ function pickList(d0, dFull, amt){
 $("cFromBefore").addEventListener("click", function(){ st.custom = {}; ADJ = {}; updateTab2(true); });
 tapClear($("trialAmt"));
 $("trialAmt").addEventListener("input", function(){
-  var d = digits(this.value); st.trial = d; this.value = withCommas(d);
+  var d = digits(this.value);
+  if (!(num(d) > 0)) d = "";
+  st.trial = d; this.value = withCommas(d);
   try { this.setSelectionRange(this.value.length, this.value.length); } catch(e){}
-  $("trialBtn").disabled = !(num(d) > 0);
+  renderTrial(scenarios());
 });
 
 /* ===== v2.7 ขีดเขียนบนตารางขั้นบันได (ไม่ติดในรูป LINE) ===== */
@@ -1794,25 +1796,43 @@ function drawAll(){
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, drawCv.width, drawCv.height); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   DRAW.strokes.forEach(function(s){
     var p = s.pts; if (!p.length) return;
-    ctx.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
-    ctx.strokeStyle = s.erase ? "#000" : (s.color === "hl" ? "rgba(255,213,0,.45)" : s.color);
-    ctx.lineWidth = s.erase ? 26 : (s.color === "hl" ? 18 : 3.5);
+    ctx.strokeStyle = s.color === "hl" ? "rgba(255,213,0,.45)" : s.color;
+    ctx.lineWidth = s.color === "hl" ? 18 : 3.5;
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
     if (p.length === 1) ctx.lineTo(p[0][0] + 0.1, p[0][1]);
     for (var i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
     ctx.stroke();
   });
-  ctx.globalCompositeOperation = "source-over";
 }
 function drawPt(e){ var r = drawCv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+/* ยางลบ: แตะโดนรอยไหน ลบรอยนั้นทั้งรอย */
+function segDist(p, a, b){
+  var dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy, t = L ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L : 0;
+  t = Math.max(0, Math.min(1, t)); var x = a[0] + t * dx - p[0], y = a[1] + t * dy - p[1]; return Math.sqrt(x * x + y * y);
+}
+function eraseAt(p){
+  var before = DRAW.strokes.length;
+  DRAW.strokes = DRAW.strokes.filter(function(s){
+    var tol = s.color === "hl" ? 18 : 14, q = s.pts;
+    if (q.length === 1) return segDist(p, q[0], q[0]) > tol;
+    for (var i = 1; i < q.length; i++) if (segDist(p, q[i - 1], q[i]) <= tol) return false;
+    return true;
+  });
+  if (DRAW.strokes.length !== before) drawAll();
+}
+var erasing = false;
 drawCv.addEventListener("pointerdown", function(e){
   if (!DRAW.on) return; e.preventDefault();
   try { drawCv.setPointerCapture(e.pointerId); } catch(x){}
-  DRAW.cur = { color:DRAW.color, erase:DRAW.erase, pts:[drawPt(e)] }; DRAW.strokes.push(DRAW.cur); drawAll();
+  if (DRAW.erase){ erasing = true; eraseAt(drawPt(e)); return; }
+  DRAW.cur = { color:DRAW.color, pts:[drawPt(e)] }; DRAW.strokes.push(DRAW.cur); drawAll();
 });
-drawCv.addEventListener("pointermove", function(e){ if (!DRAW.cur) return; e.preventDefault(); DRAW.cur.pts.push(drawPt(e)); drawAll(); });
-function drawEnd(){ DRAW.cur = null; }
+drawCv.addEventListener("pointermove", function(e){
+  if (erasing){ e.preventDefault(); eraseAt(drawPt(e)); return; }
+  if (!DRAW.cur) return; e.preventDefault(); DRAW.cur.pts.push(drawPt(e)); drawAll();
+});
+function drawEnd(){ DRAW.cur = null; erasing = false; }
 drawCv.addEventListener("pointerup", drawEnd); drawCv.addEventListener("pointercancel", drawEnd);
 function drawTools(){
   Array.prototype.forEach.call(document.querySelectorAll("#drawBar .dot"), function(b){ b.setAttribute("aria-pressed", !DRAW.erase && b.dataset.c === DRAW.color ? "true" : "false"); });
@@ -1833,7 +1853,7 @@ $("clearBtn").addEventListener("click", function(){ DRAW.strokes = []; drawAll()
 if (window.ResizeObserver) new ResizeObserver(drawSize).observe(drawBox);
 window.addEventListener("resize", drawSize);
 drawTools();
-function resetPlay(){ DRAW.strokes = []; drawAll(); setPen(false); $("trialAmt").value = ""; $("trialBtn").disabled = true; closeTrial(); }
+function resetPlay(){ DRAW.strokes = []; drawAll(); setPen(false); $("trialAmt").value = ""; $("trialOut").style.display = "none"; }
 
 /* ===== บันทึกรูป / ส่ง LINE ===== */
 function loadH2C(){
