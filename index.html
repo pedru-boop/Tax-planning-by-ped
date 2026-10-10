@@ -433,16 +433,31 @@ table.gu2{border-collapse:collapse;min-width:100%}
 .br-draw.pen{outline:2px dashed #E8772E;outline-offset:4px;border-radius:12px}
 .penhint{display:none;font-size:14.5px;color:#B45F06;margin:-2px 2px 8px}
 .drawbar.on+.penhint{display:block}
-.trial{margin-top:14px;background:#FFF7EC;border:1.5px solid #F3D3A8;border-radius:12px;padding:12px 14px}
-.trial h4{margin:0;font-size:19px;color:#B45F06}
-.trial .tsub{font-size:15px;color:var(--muted);margin:0 0 8px}
-.trial .ln{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:17px;font-weight:600;padding:5px 0;border-bottom:1px dashed #F0DDC0}
-.trial .ln b{white-space:nowrap;font-size:21px;text-align:right}
-.trial .ln.capl b{color:#1F4FA0}
-.trial .msg{margin-top:8px;font-size:16px;color:#1B3A7A}
-.trial .msg.bad{color:#C0392B;font-weight:700}
-.trial .msg.ok{color:#2E7D0F;font-weight:700}
-.trial #trialOut{margin-top:8px}
+.trialrow{display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+.trialrow label{font-size:15px;font-weight:700;color:#B45F06}
+.trialrow .inp{width:150px;font-size:18px;padding:6px 10px;border-color:#F3D3A8;text-align:right}
+.trialrow .btn{padding:7px 12px;font-size:15px;background:#E8772E;color:#fff}
+.trialrow .btn:disabled{opacity:.4;cursor:default}
+.tmodal{position:fixed;inset:0;z-index:50;background:rgba(20,40,63,.45);display:none;align-items:center;justify-content:center;padding:16px}
+.tmodal.on{display:flex}
+.tbox{background:#fff;border-radius:16px;max-width:440px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.tbox h4{margin:0 0 10px;font-size:19px;color:#B45F06}
+.tcmp{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tcmp th{font-size:14.5px;background:#1B3A7A;color:#fff;padding:7px 6px}
+.tcmp th.c3{background:#B45F06}
+.tcmp td{padding:7px 6px;border-bottom:1px solid #EDF1F4;text-align:right;font-size:18px;font-weight:700}
+.tcmp td:first-child{text-align:left;font-size:15px;font-weight:600}
+.tcmp td.c3{background:#FFF4E5}
+.tdown{margin:12px 0 4px;padding:10px 12px;border-radius:12px;background:#F2F7DC;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tdown span{font-size:16px;font-weight:700;color:#3E6A08}
+.tdown b{font-size:26px;color:#2E7D0F;white-space:nowrap}
+.tmsg{margin-top:6px;font-size:15.5px;color:#1B3A7A}
+.tmsg.bad{color:#C0392B;font-weight:700}
+.tmsg.ok{color:#2E7D0F;font-weight:700}
+.tbox .btn{margin-top:12px;width:100%}
+.tln{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 2px;border-bottom:1px dashed #E1E7EE}
+.tln span{font-size:18px;font-weight:700;color:#1B3A7A}
+.tln b{font-size:26px;white-space:nowrap;color:#1B3A7A}
 </style>
 </head>
 <body>
@@ -557,15 +572,13 @@ table.gu2{border-collapse:collapse;min-width:100%}
       <div class="penhint no-share">ขณะขีดเขียน หน้าจอตรงตารางจะเลื่อนไม่ได้ แตะ "เลิกขีดเขียน" เพื่อเลื่อนต่อ · รอยขีดไม่ติดในรูป LINE</div>
       <div class="br-draw" id="brDraw">
         <div class="br-wrap"><table class="br" id="brTable"></table></div>
+        <div class="trialrow no-share">
+          <label for="trialAmt">ทดลองลดหย่อนเพิ่ม</label>
+          <input class="inp money" id="trialAmt" inputmode="numeric" placeholder="บาท">
+          <button type="button" class="btn" id="trialBtn" disabled>ดูภาษี</button>
+        </div>
         <div class="brtip" id="brTip"></div>
         <canvas class="no-share" id="brCanvas" aria-hidden="true"></canvas>
-      </div>
-      <div class="trial no-share" id="trialBox">
-        <h4>ทดลองงบลดหย่อนเพิ่ม</h4>
-        <div class="tsub">คิดจากคอลัมน์ปัจจุบัน ใช้คุยวางแผน ไม่ติดในรูป LINE</div>
-        <label class="f" for="trialAmt">ถ้าซื้อค่าลดหย่อนเพิ่ม (บาท)</label>
-        <input class="inp money" id="trialAmt" inputmode="numeric" placeholder="เช่น 200,000">
-        <div id="trialOut"></div>
       </div>
     </div>
 
@@ -576,6 +589,10 @@ table.gu2{border-collapse:collapse;min-width:100%}
   <div class="foot" id="foot"></div>
 </main>
 
+<div class="tmodal" id="trialModal" role="dialog" aria-modal="true" aria-label="ผลทดลองค่าลดหย่อน">
+  <div class="tbox"><div id="trialOut"></div><button type="button" class="btn btn-p" id="trialClose">ปิด</button></div>
+</div>
+
 <div class="bar" id="bar">
   <div class="bar-in">
     <div class="bar-t"><span id="barLbl">ภาษีที่ลูกค้าจ่ายเอง (ประมาณ)</span><b class="num" id="barTax">0</b></div>
@@ -585,7 +602,7 @@ table.gu2{border-collapse:collapse;min-width:100%}
 <script>
 (function(){
 "use strict";
-var APP_VERSION = "2.7.0";
+var APP_VERSION = "2.8.1";
 var DATA_AS_OF = "8 ต.ค. 2569";
 var APP_UPDATED = "10 ต.ค. 2569";
 
@@ -1693,48 +1710,28 @@ function trialCalc(s){
   var dT = allocate(s.dB, s.dFcap, use), rT = computeAll(s.v, dT, s.dB);
   return { amt:amt, cap:cap, use:use, dT:dT, rT:rT };
 }
-function renderTrial(s, t){
-  var out = $("trialOut"); if (!out) return; out.innerHTML = "";
-  var cap = extraPay(s.dFcap, s.dB), useful = Math.max(0, s.rB.net - floorNet(s.rB));
-  function ln(a, v, cls, rcls){ out.appendChild(el("div", { class:"ln" + (rcls ? " " + rcls : "") }, el("span", null, a), el("b", { class:cls || "" }, v))); }
-  function msg(txt, cls){ out.appendChild(el("div", { class:"msg " + (cls || "") }, txt)); }
-  ln("ซื้อเพิ่มได้อีกสูงสุด", cap > 0.5 ? fmt(cap) + " บาท" : "ใช้สิทธิ์เต็มแล้ว", "", "capl");
-  if (!t){ msg("ใส่ยอดเงินด้านบน เพื่อดูว่าภาษีจะเหลือเท่าไร"); return; }
-  var save = s.rB.taxAfterCredit - t.rT.taxAfterCredit;
-  var tax = t.rT.wht > 0 ? t.rT.payable : t.rT.selfTax;
-  var lbl = tax < -0.5 ? "เงินคืนภาษี" : (t.rT.wht > 0 ? "ภาษีที่ต้องจ่ายเพิ่ม" : (t.rT.empPaid > 0 ? "ลูกค้าจ่ายเอง" : "ภาษีที่ต้องเสีย"));
-  ln("เงินได้สุทธิ", fmt(s.rB.net) + " → " + fmt(t.rT.net));
-  ln("ขั้นภาษีสูงสุด", s.rB.rate + "% → " + t.rT.rate + "%");
-  ln(lbl, fmt(Math.abs(tax)) + " บาท", tax < -0.5 ? "refund" : (tax > 0.5 ? "owe" : ""));
-  ln("ประหยัดภาษี", fmt(save) + " บาท", "up");
-  ln("คิดเป็น", t.use > 0 ? (save / t.use * 100).toFixed(1) + "% ของเงินที่ใส่" : "–");
-  if (t.amt > cap + 0.5) msg("⚠ เกินยอดที่ซื้อเพิ่มได้ " + fmt(t.amt - cap) + " บาท ส่วนที่เกินไม่ได้ลดหย่อน", "bad");
-  else if (t.amt > useful + 0.5) msg("⚠ ใส่เกินจุดคุ้ม " + fmt(t.amt - useful) + " บาท ส่วนที่เกินไม่ช่วยลดภาษี", "bad");
-  else if (!t.rT.usedMin){
-    var ti = topIdx(t.rT.net);
-    if (ti > 0 && BR[ti][1] > 0){
-      var need = t.rT.net - BR[ti - 1][0];
-      if (need >= 1 && t.amt + need <= cap + 0.5 && t.amt + need <= useful + 0.5) msg("ซื้อเพิ่มอีก " + fmt(need) + " บาท จะลงมาขั้น " + BR[ti - 1][1] + "%");
-    }
-  }
-  var dist = extraPay(s.dC, s.dB);
-  if (dist > 0.5){
-    if (dist > t.amt + 0.5) msg("กระจายในคอลัมน์ตามใจลูกค้าแล้ว " + fmt(dist) + " บาท · เกินงบทดลอง " + fmt(dist - t.amt) + " บาท", "bad");
-    else if (dist >= t.amt - 0.5) msg("✓ กระจายในคอลัมน์ตามใจลูกค้าครบ " + fmt(dist) + " บาทแล้ว", "ok");
-    else msg("กระจายในคอลัมน์ตามใจลูกค้าแล้ว " + fmt(dist) + " บาท · เหลืออีก " + fmt(t.amt - dist) + " บาท");
-  } else msg("ยังไม่ได้กระจายยอดในคอลัมน์ตามใจลูกค้า");
+/* ป๊อบอัพเทียบภาษี ปัจจุบัน กับ ใส่ลดหย่อนเพิ่ม */
+function openTrial(){
+  var s = scenarios(), t = trialCalc(s); if (!t) return;
+  var out = $("trialOut"); out.innerHTML = "";
+  var tax = Math.max(0, t.rT.selfTax), down = Math.max(0, s.rB.selfTax) - tax;
+  function ln(a, v, cls){ out.appendChild(el("div", { class:"tln" }, el("span", null, a), el("b", { class:cls || "" }, v))); }
+  ln("ลองใส่ค่าลดหย่อนเพิ่ม", fmt(t.amt) + " บาท");
+  ln("ภาษีที่ต้องเสีย", fmt(tax) + " บาท", "owe");
+  ln("ประหยัดได้", fmt(down) + " บาท", "refund");
+  $("trialModal").classList.add("on");
 }
+function closeTrial(){ $("trialModal").classList.remove("on"); }
+$("trialClose").addEventListener("click", closeTrial);
+$("trialModal").addEventListener("click", function(e){ if (e.target === this) closeTrial(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTrial(); });
+$("trialBtn").addEventListener("click", openTrial);
 function renderBrackets(s){
-  var tr = trialCalc(s);
-  if (st.brView === "T" && !tr) st.brView = "B";
   var tg = $("brToggle"); tg.innerHTML = "";
-  var VIEWS = [["B","ปัจจุบัน"],["F","ใช้สิทธิ์เต็ม"],["C","ตามใจลูกค้า"]];
-  if (tr) VIEWS.push(["T","ทดลอง"]);
-  VIEWS.forEach(function(x){
+  [["B","ปัจจุบัน"],["F","ใช้สิทธิ์เต็ม"],["C","ตามใจลูกค้า"]].forEach(function(x){
     tg.appendChild(el("button", { type:"button", "aria-pressed":st.brView === x[0] ? "true" : "false", onclick:function(){ st.brView = x[0]; renderBrackets(scenarios()); } }, x[1]));
   });
-  renderTrial(s, tr);
-  var r = st.brView === "T" ? tr.rT : st.brView === "F" ? s.rF : st.brView === "C" ? s.rC : s.rB, net = r.net, ti = topIdx(net);
+  var r = st.brView === "F" ? s.rF : st.brView === "C" ? s.rC : s.rB, net = r.net, ti = topIdx(net);
   var t = $("brTable"); t.innerHTML = "";
   t.appendChild(el("thead", null, el("tr", null, el("th", null, "ช่วงเงินได้สุทธิ"), el("th", null, "จำนวนเงินในขั้นนี้"), el("th", null, "อัตรา"), el("th", null, "ภาษี"), el("th", null, "ภาษีสะสม"))));
   var tb = el("tbody"); t.appendChild(tb);
@@ -1748,7 +1745,7 @@ function renderBrackets(s){
   tb.appendChild(el("tr", { class:"tot" }, el("td", null, "รวม"), el("td", null, fmt(net)), el("td"), el("td", null, fmt(r.prog)), el("td")));
   var tip = $("brTip"); tip.innerHTML = "";
   function line(t){ tip.appendChild(el("div", null, t)); }
-  var dX = st.brView === "T" ? tr.dT : st.brView === "F" ? s.dF : st.brView === "C" ? s.dC : s.dB;
+  var dX = st.brView === "F" ? s.dF : st.brView === "C" ? s.dC : s.dB;
   if (r.usedMin){ line("เสียภาษีวิธีที่ 2 (0.5% ของเงินได้ที่ไม่ใช่ 40(1)) = " + fmt(r.taxMin) + " บาท"); line("ลดหย่อนเพิ่มไม่ช่วยลดภาษี เพราะวิธีที่ 2 ไม่หักค่าลดหย่อน"); return; }
   if (BR[ti][1] === 0){ line("เงินได้สุทธิไม่เกิน 150,000 บาท"); line("ไม่ต้องเสียภาษี"); return; }
   line("อยู่ขั้นภาษี " + BR[ti][1] + "% เงินได้ในขั้นนี้ " + fmt(net - BR[ti - 1][0]) + " บาท");
@@ -1758,11 +1755,9 @@ function renderBrackets(s){
   var fl = floorNet(r), need = Math.max(0, net - Math.max(BR[ti - 1][0], fl));
   if (room < 1){ line("ใช้สิทธิ์ลดหย่อนที่ซื้อเพิ่มได้ครบแล้ว ลดภาษีด้วยการลดหย่อนเพิ่มไม่ได้อีก"); return; }
   var use = Math.min(room, need), saveT = r.taxAfterCredit - computeAll(s.v, allocate(dX, fX, use)).taxAfterCredit;
-  var picks = pickList(dX, fX, use);
   if (room + 0.5 >= need && fl <= BR[ti - 1][0]) line("ซื้อเพิ่มอีก " + fmt(use) + " บาท จะลงมาอยู่ขั้น " + BR[ti - 1][1] + "%");
   else if (fl > BR[ti - 1][0] && room + 0.5 >= need) line("ซื้อเพิ่มได้อีก " + fmt(use) + " บาท เกินกว่านี้ไม่ช่วยลดภาษี (ภาษีวิธีที่ 2 / ยกเว้น 150,000)");
   else line("ซื้อเพิ่มได้อีกสูงสุด " + fmt(use) + " บาท ยังอยู่ขั้น " + BR[ti][1] + "% เดิม");
-  if (picks) line("เช่น " + picks);
   line("ประหยัดภาษีได้ " + fmt(saveT) + " บาท");
 }
 var PICK_ORDER = [["health","ประกันสุขภาพ"],["life","ประกันชีวิต"],["annuity","บำนาญ"],["rmf","RMF"],["nsf","กอช."],["tesg","Thai ESG"],["parentHealth","ประกันสุขภาพพ่อแม่"],["spouseLife","ประกันชีวิตคู่สมรส"]];
@@ -1781,8 +1776,7 @@ tapClear($("trialAmt"));
 $("trialAmt").addEventListener("input", function(){
   var d = digits(this.value); st.trial = d; this.value = withCommas(d);
   try { this.setSelectionRange(this.value.length, this.value.length); } catch(e){}
-  if (num(d) > 0) st.brView = "T"; else if (st.brView === "T") st.brView = "B";
-  renderBrackets(scenarios());
+  $("trialBtn").disabled = !(num(d) > 0);
 });
 
 /* ===== v2.7 ขีดเขียนบนตารางขั้นบันได (ไม่ติดในรูป LINE) ===== */
@@ -1839,7 +1833,7 @@ $("clearBtn").addEventListener("click", function(){ DRAW.strokes = []; drawAll()
 if (window.ResizeObserver) new ResizeObserver(drawSize).observe(drawBox);
 window.addEventListener("resize", drawSize);
 drawTools();
-function resetPlay(){ DRAW.strokes = []; drawAll(); setPen(false); $("trialAmt").value = ""; }
+function resetPlay(){ DRAW.strokes = []; drawAll(); setPen(false); $("trialAmt").value = ""; $("trialBtn").disabled = true; closeTrial(); }
 
 /* ===== บันทึกรูป / ส่ง LINE ===== */
 function loadH2C(){
